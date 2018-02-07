@@ -42,6 +42,8 @@ if post_response.status_code == 201:
         delete_response = requests.delete(delete_url, headers=delete_headers)
         if delete_response.status_code == 204:
             print('Successfully deleted exam. Have a good one!')
+        else:
+            print('Your app does not have delete exam permissions')
     else:
         print('Error getting integration credentials')
 
