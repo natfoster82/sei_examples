@@ -8,6 +8,7 @@ from requests.auth import HTTPBasicAuth
 from colorblind.views import colorblind_bp
 from helpers import redis_store
 
+
 # app setup
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
@@ -15,7 +16,7 @@ app.register_blueprint(colorblind_bp)
 
 
 if app.config['PREFERRED_URL_SCHEME'] == 'https':
-    sslify = SSLify(app)
+    SSLify(app)
 
 
 # base views
