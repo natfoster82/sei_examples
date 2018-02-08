@@ -2,22 +2,19 @@ from json import dumps
 
 import requests
 from flask import Flask, render_template, request, abort
-from flask_sslify import SSLify
 from requests.auth import HTTPBasicAuth
+from werkzeug.contrib.fixers import ProxyFix
 
 from colorblind.views import colorblind_bp
 from helpers import redis_store
-
 
 # app setup
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
 app.register_blueprint(colorblind_bp)
 
-
 if app.config['PREFERRED_URL_SCHEME'] == 'https':
-    print('Configuring app for SSL')
-    SSLify(app)
+    app.wsgi_app = ProxyFix(app.wsgi_app)
 
 
 # base views

@@ -1,5 +1,4 @@
 flask
-flask-sslify
 gunicorn
 requests[security]
 redis
