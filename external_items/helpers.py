@@ -6,7 +6,7 @@ from requests.auth import HTTPBasicAuth
 from json import loads, dumps
 
 
-redis_store = StrictRedis.from_url(REDIS_URL)
+redis_store = StrictRedis.from_url(REDIS_URL, db=4)
 external_serializer = URLSafeTimedSerializer(SECRET_KEY)
 
 
