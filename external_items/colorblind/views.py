@@ -14,7 +14,7 @@ def get_url():
         # store the external token in redis and remove it from the url we send back
         redis_store.setex(response_id, 7200, external_token)
     args = {key: value for key, value in request.args.items() if key != 'external_token'}
-    return url_for('colorblind.colorblind', _external=True, **args)
+    return url_for('colorblind.colorblind', _external=True, _scheme=current_app.config['PREFERRED_URL_SCHEME'], **args)
 
 
 @colorblind_bp.route('/', methods=['GET', 'POST'])
