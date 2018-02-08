@@ -16,6 +16,7 @@ app.register_blueprint(colorblind_bp)
 
 
 if app.config['PREFERRED_URL_SCHEME'] == 'https':
+    print('Configuring app for SSL')
     SSLify(app)
 
 
