@@ -17,7 +17,7 @@ def get_url():
     return url_for('colorblind.colorblind', _external=True, **args)
 
 
-@colorblind_bp.route('/', methods=['GET', 'POST'])
+@colorblind_bp.route('', methods=['GET', 'POST'])
 def colorblind():
     if request.method == 'POST':
         response_id = request.args.get('response_id')
