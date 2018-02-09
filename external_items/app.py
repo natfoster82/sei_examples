@@ -7,6 +7,7 @@ from werkzeug.contrib.fixers import ProxyFix
 
 from colorblind.views import colorblind_bp
 from connect4.views import connect4_bp
+from adventure.views import adventure_bp
 from helpers import redis_store
 
 # app setup
@@ -19,6 +20,7 @@ app.url_map.strict_slashes = False
 
 app.register_blueprint(colorblind_bp)
 app.register_blueprint(connect4_bp)
+app.register_blueprint(adventure_bp)
 
 
 # base views
