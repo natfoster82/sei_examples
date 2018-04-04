@@ -18,7 +18,7 @@ app.url_map.strict_slashes = False
 
 
 # some helpers
-redis_store = StrictRedis.from_url(app.config['REDIS_URL'], db=3, decode_responses=True)
+redis_store = StrictRedis.from_url(app.config['REDIS_URL'], db=app.config['REDIS_DB'], decode_responses=True)
 
 
 def get_integration_info(exam_id):
@@ -69,11 +69,44 @@ def delivery_completed():
 
     # get full delivery object from SEI
     delivery_id = body['delivery_id']
-    delivery_url = '{0}/api/exams/{1}/deliveries/{2}'.format(app.config['SEI_URL_BASE'], exam_id, delivery_id)
+    delivery_url = '{0}/api/exams/{1}/deliveries/{2}?include=exam'.format(app.config['SEI_URL_BASE'], exam_id, delivery_id)
     delivery_headers = {'Authorization': 'Bearer {0}'.format(integration_info['token'])}
     delivery_response = requests.get(delivery_url, headers=delivery_headers)
     delivery_json = delivery_response.json()
 
     # TODO: build the payload and make request to external system
 
+    # for now send to slack for testing:
+    slack_webhook_url = app.config.get('SLACK_WEBHOOK_URL')
+    if slack_webhook_url:
+        channel = app.config.get('SLACK_CHANNEL', '#general')
+        examinee_attachment = {
+            'pretext': 'Someone has completed a delivery in the {0} exam'.format(delivery_json['exam']['name']),
+            'title': 'Examinee Info',
+            'text': '```{0}```'.format(dumps(delivery_json['examinee']['info'], sort_keys=True, indent=4, separators=(',', ': '))),
+            'mrkdwn_in': [
+                'text'
+            ]
+        }
+        delivery_info = {
+            'score': delivery_json['score'],
+            'score_scale': delivery_json['score_scale'],
+            'passed': delivery_json['passed'],
+            'points_earned': delivery_json['points_earned'],
+            'points_available': delivery_json['points_available']
+        }
+        delivery_attachment = {
+            'title': 'Delivery Info',
+            'text': '```{0}```'.format(dumps(delivery_info, sort_keys=True, indent=4, separators=(',', ': '))),
+            'mrkdwn_in': [
+                'text'
+            ]
+        }
+        slack_payload = {
+            'username': 'SEI Results Connector',
+            'icon_emoji': ':owl:',
+            'channel': channel,
+            'attachments': [examinee_attachment, delivery_attachment]
+        }
+        requests.post(slack_webhook_url, json=slack_payload)
     return jsonify()
