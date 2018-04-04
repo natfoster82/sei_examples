@@ -103,7 +103,7 @@ def delivery_completed():
             ]
         }
         slack_payload = {
-            'username': 'SEI Results Connector',
+            'username': 'SEI Result Connector',
             'icon_emoji': ':owl:',
             'channel': channel,
             'attachments': [examinee_attachment, delivery_attachment]
