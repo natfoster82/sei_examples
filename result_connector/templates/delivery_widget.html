@@ -33,10 +33,13 @@
 <body>
     <section>
         <div>Did this result not post correctly to your system?</div>
-        <button onclick="postDelivery()">Try again manually</button>
+        <button id="submit_btn" onclick="postDelivery()">Try again manually</button>
     </section>
     <script>
         function postDelivery() {
+            var btn = document.getElementById('submit_btn');
+            btn.disabled = true;
+            btn.innerText = 'Sending request';
             var url = {{ url_for('delivery_completed')|tojson }};
             var payload = {
                 exam_id: {{ exam_id|tojson }},
@@ -51,7 +54,9 @@
                     Authorization: 'Bearer ' + {{ token|tojson }}
                 })
             }).then(function(){
-                alert('Success!');
+                btn.innerText = 'Success'
+            }).catch(function(){
+                btn.innerText = 'Error'
             })
         }
     </script>
