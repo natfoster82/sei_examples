@@ -110,3 +110,16 @@ def delivery_completed():
         }
         requests.post(slack_webhook_url, json=slack_payload)
     return jsonify()
+
+
+@app.route('/delivery_widget')
+def delivery_widget():
+    exam_id = request.args.get('exam_id')
+    delivery_id = request.args.get('delivery_id')
+    token = request.args.get('jwt')
+    integration_info = get_integration_info(exam_id)
+    try:
+        decoded = jwt.decode(token, integration_info['secret'], algorithms=['HS256'])
+    except jwt.exceptions.InvalidTokenError:
+        abort(403)
+    return render_template('delivery_widget.html', exam_id=exam_id, delivery_id=delivery_id, token=token)
