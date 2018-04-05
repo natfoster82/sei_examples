@@ -74,9 +74,22 @@ def delivery_completed():
     delivery_response = requests.get(delivery_url, headers=delivery_headers)
     delivery_json = delivery_response.json()
 
-    # TODO: build the payload and make request to external system
+    # todo: make the request configurable in the UI and store in db instead of these conditionals
 
-    # for now send to slack for testing:
+    trainingrocket_url_base = app.config.get('TRAININGROCKET_URL_BASE')
+    if trainingrocket_url_base:
+        url = trainingrocket_url_base + '/api/rest/v2/manage/exam_session'
+        headers = {
+            'TrainingRocket-Authorization': app.config['TRAININGROCKET_API_TOKEN']
+        }
+        payload = {
+            'enrolmentId': delivery_json['examinee']['info']['Enrollment ID'],
+            'score': delivery_json['score'],
+            'maxScore': delivery_json['score_scale'][1],
+            'rawScore': delivery_json['points_earned']
+        }
+        requests.post(url, json=payload, headers=headers)
+
     slack_webhook_url = app.config.get('SLACK_WEBHOOK_URL')
     if slack_webhook_url:
         channel = app.config.get('SLACK_CHANNEL', '#general')
