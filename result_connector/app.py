@@ -82,11 +82,15 @@ def delivery_completed():
         headers = {
             'TrainingRocket-Authorization': app.config['TRAININGROCKET_API_TOKEN']
         }
+        try:
+            pct_score = delivery_json['points_earned'] / delivery_json['points_available']
+        except (TypeError, ZeroDivisionError):
+            pct_score = 0
         payload = {
-            'enrolmentId': delivery_json['examinee']['info']['Enrollment ID'],
-            'score': delivery_json['score'],
-            'maxScore': delivery_json['score_scale'][1],
-            'rawScore': delivery_json['points_earned']
+            'enrolmentId': delivery_json['examinee']['info'].get('Enrollment ID'),
+            'score': pct_score,
+            'maxScore': delivery_json['points_available'] or 100,
+            'rawScore': delivery_json['points_earned'] or 0
         }
         requests.post(url, json=payload, headers=headers)
 
