@@ -78,21 +78,32 @@ def delivery_completed():
 
     trainingrocket_url_base = app.config.get('TRAININGROCKET_URL_BASE')
     if trainingrocket_url_base:
-        url = trainingrocket_url_base + '/api/rest/v2/manage/exam_session'
         headers = {
-            'TrainingRocket-Authorization': app.config['TRAININGROCKET_API_TOKEN']
+            'TrainingRocket-Authorization': app.config['TRAININGROCKET_API_TOKEN'],
+            'Accept': 'application/json'
         }
-        try:
-            pct_score = delivery_json['points_earned'] / delivery_json['points_available']
-        except (TypeError, ZeroDivisionError):
-            pct_score = 0
-        payload = {
-            'enrolmentId': delivery_json['examinee']['info'].get('Enrollment ID'),
-            'score': pct_score,
-            'maxScore': delivery_json['points_available'] or 100,
-            'rawScore': delivery_json['points_earned'] or 0
+        enrollment_id = delivery_json['examinee']['info'].get('Enrollment ID')
+        # url = trainingrocket_url_base + '/api/rest/v2/manage/exam_session'
+        # try:
+        #     pct_score = delivery_json['points_earned'] / delivery_json['points_available']
+        # except (TypeError, ZeroDivisionError):
+        #     pct_score = 0
+        # payload = {
+        #     'enrolmentId': enrollment_id,
+        #     'score': pct_score,
+        #     'maxScore': delivery_json['points_available'] or 100,
+        #     'rawScore': delivery_json['points_earned'] or 0
+        # }
+        # requests.post(url, json=payload, headers=headers)
+        status_url = trainingrocket_url_base + '/api/rest/v2/manage/enrolment/' + enrollment_id
+        if delivery_json.get('passed'):
+            status = 'PASSED'
+        else:
+            status = 'FAILED'
+        status_payload = {
+            'status': status
         }
-        requests.post(url, json=payload, headers=headers)
+        requests.post(status_url, json=status_payload, headers=headers)
 
     slack_webhook_url = app.config.get('SLACK_WEBHOOK_URL')
     if slack_webhook_url:
