@@ -7,7 +7,7 @@ sei_id = input('What is your app\'s ID? ')
 sei_secret = input('What is your app\'s secret? ')
 exam_name = input('What do you want to call your exam? ')
 
-url_base = 'https://sei-stage.herokuapp.com'
+url_base = 'https://sei.caveon.com'
 post_url = url_base + '/api/exams'
 
 payload = {
