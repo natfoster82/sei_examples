@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Configure</title>
+</head>
+<style>
+    html, body {
+        font-family: Arial, Helvetica, sans-serif;
+        background: #fff;
+    }
+    section {
+        width: 98%;
+        margin: 30px auto;
+        background: #eee;
+        border-radius: 10px;
+        padding: 10px 50px 30px;
+        box-sizing: border-box;
+        }
+</style>
+<body>
+    <section>
+        <h1>Fill out the form below to complete this integration</h1>
+        <form method="post" action="">
+            {{ form.hidden_tag() }}
+            {{ form.slack_webhook_url.label() }}
+            {% if form.slack_webhook_url.errors %}
+                 <ul>
+                    {% for error in form.slack_webhook_url.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                 </ul>
+            {% endif %}
+            {{ form.slack_webhook_url() }}
+            {{ form.slack_channel.label() }}
+            {% if form.slack_channel.errors %}
+                 <ul>
+                    {% for error in form.slack_channel.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                 </ul>
+            {% endif %}
+            {{ form.slack_channel() }}
+            <input type="submit" value="Submit" />
+        </form>
+    </section>
+</body>
+</html>
