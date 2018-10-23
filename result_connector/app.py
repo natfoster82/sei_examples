@@ -45,11 +45,11 @@ class ConfigureForm(FlaskForm):
     slack_webhook_url = StringField('Webhook URL')
     slack_channel = StringField('Channel (default: #general)')
 
-    def validate_slack_webhook_url(form, field):
+    def validate_slack_webhook_url(self, field):
         if not field.data.startswith('https://hooks.slack.com'):
             raise ValidationError('Not a valid slack webhook url')
 
-    def validate_slack_channel(form, field):
+    def validate_slack_channel(self, field):
         if field.data:
             if not field.data.startswith('#'):
                 raise ValidationError('Not a valid channel')
