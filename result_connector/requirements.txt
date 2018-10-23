@@ -12,6 +12,7 @@ click==6.7                # via flask
 cryptography==2.3.1       # via pyopenssl, requests
 dnspython==1.15.0         # via eventlet
 eventlet==0.24.1
+flask-wtf==0.14.2
 flask==1.0.2
 greenlet==0.4.15          # via eventlet
 gunicorn==19.9.0
@@ -28,3 +29,4 @@ requests[security]==2.19.1
 six==1.11.0               # via cryptography, eventlet, pyopenssl
 urllib3==1.23             # via requests
 werkzeug==0.14.1          # via flask
+wtforms==2.2.1            # via flask-wtf

@@ -1,11 +1,16 @@
+from datetime import datetime, timedelta
 from json import loads, dumps
 
 import requests
 import jwt
-from flask import Flask, render_template, request, abort, jsonify
+from flask import Flask, render_template, request, abort, jsonify, redirect, url_for
+from flask_wtf import FlaskForm
+from flask_wtf.csrf import CSRFProtect
 from redis import StrictRedis
 from requests.auth import HTTPBasicAuth
 from werkzeug.contrib.fixers import ProxyFix
+from wtforms import StringField
+from wtforms.validators import URL, ValidationError
 
 
 # app setup
@@ -15,6 +20,8 @@ if app.config['PREFERRED_URL_SCHEME'] == 'https':
     app.wsgi_app = ProxyFix(app.wsgi_app)
 
 app.url_map.strict_slashes = False
+
+csrf = CSRFProtect(app)
 
 
 # some helpers
@@ -34,6 +41,20 @@ def get_integration_info(exam_id):
     return data
 
 
+class ConfigureForm(FlaskForm):
+    slack_webhook_url = StringField('Webhook URL')
+    slack_channel = StringField('Channel (default: #general)')
+
+    def validate_slack_webhook_url(form, field):
+        if not field.data.startswith('https://hooks.slack.com'):
+            raise ValidationError('Not a valid slack webhook url')
+
+    def validate_slack_channel(form, field):
+        if field.data:
+            if not field.data.startswith('#'):
+                raise ValidationError('Not a valid channel')
+
+
 # views
 @app.route('/')
 def index():
@@ -50,11 +71,24 @@ def sei_redirect():
     if resp.status_code != 200:
         abort(400)
     data = resp.json()
-    redis_store.set(data['exam_id'], dumps(data))
-    return render_template('sei_redirect.html')
+    exam_id = data['exam_id']
+    secret = data['secret']
+    existing_data = redis_store.get(exam_id)
+    if existing_data:
+        existing_data = loads(existing_data)
+        existing_data.update(data)
+        data = existing_data
+    redis_store.set(exam_id, dumps(data))
+    now = datetime.utcnow()
+    exp_seconds = 3600
+    exp_time = (now + timedelta(seconds=exp_seconds))
+    payload = {'iss': 'SEI', 'sub': exam_id, 'iat': now, 'exp': exp_time}
+    token = jwt.encode(payload, secret, algorithm='HS256').decode()
+    return redirect(url_for('configure', jwt=token, exam_id=exam_id))
 
 
 @app.route('/delivery_completed', methods=['POST'])
+@csrf.exempt
 def delivery_completed():
     # authorize the request
     body = request.get_json()
@@ -74,40 +108,9 @@ def delivery_completed():
     delivery_response = requests.get(delivery_url, headers=delivery_headers)
     delivery_json = delivery_response.json()
 
-    # todo: make the request configurable in the UI and store in db instead of these conditionals
-
-    trainingrocket_url_base = app.config.get('TRAININGROCKET_URL_BASE')
-    if trainingrocket_url_base:
-        headers = {
-            'TrainingRocket-Authorization': app.config['TRAININGROCKET_API_TOKEN'],
-            'Accept': 'application/json'
-        }
-        enrollment_id = delivery_json['examinee']['info'].get('Enrollment ID')
-        # url = trainingrocket_url_base + '/api/rest/v2/manage/exam_session'
-        # try:
-        #     pct_score = delivery_json['points_earned'] / delivery_json['points_available']
-        # except (TypeError, ZeroDivisionError):
-        #     pct_score = 0
-        # payload = {
-        #     'enrolmentId': enrollment_id,
-        #     'score': pct_score,
-        #     'maxScore': delivery_json['points_available'] or 100,
-        #     'rawScore': delivery_json['points_earned'] or 0
-        # }
-        # requests.post(url, json=payload, headers=headers)
-        status_url = trainingrocket_url_base + '/api/rest/v2/manage/enrolment/' + enrollment_id
-        if delivery_json.get('passed'):
-            status = 'PASSED'
-        else:
-            status = 'FAILED'
-        status_payload = {
-            'status': status
-        }
-        requests.post(status_url, json=status_payload, headers=headers)
-
-    slack_webhook_url = app.config.get('SLACK_WEBHOOK_URL')
+    slack_webhook_url = integration_info.get('slack_webhook_url')
     if slack_webhook_url:
-        channel = app.config.get('SLACK_CHANNEL', '#general')
+        channel = integration_info.get('slack_channel') or '#general'
         examinee_attachment = {
             'pretext': 'Someone has completed a delivery in the {0} exam'.format(delivery_json['exam']['name']),
             'title': 'Examinee Info',
@@ -131,7 +134,7 @@ def delivery_completed():
             ]
         }
         slack_payload = {
-            'username': 'SEI Result Connector',
+            'username': 'SEI Slack Connector',
             'icon_emoji': ':owl:',
             'channel': channel,
             'attachments': [examinee_attachment, delivery_attachment]
@@ -151,3 +154,26 @@ def delivery_widget():
     except jwt.exceptions.InvalidTokenError:
         abort(403)
     return render_template('delivery_widget.html', exam_id=exam_id, delivery_id=delivery_id, token=token)
+
+
+@app.route('/configure', methods=['GET', 'POST'])
+def configure():
+    exam_id = request.args.get('exam_id')
+    token = request.args.get('jwt')
+    integration_info = get_integration_info(exam_id)
+    try:
+        decoded = jwt.decode(token, integration_info['secret'], algorithms=['HS256'])
+    except jwt.exceptions.InvalidTokenError:
+        abort(403)
+    form = ConfigureForm(**integration_info)
+    if form.validate_on_submit():
+        integration_info['slack_webhook_url'] = form.slack_webhook_url.data
+        integration_info['slack_channel'] = form.slack_channel.data
+        redis_store.set(exam_id, dumps(integration_info))
+        return redirect(url_for('complete'))
+    return render_template('configure.html', exam_id=exam_id, token=token, form=form)
+
+
+@app.route('/complete')
+def complete():
+    return render_template('complete.html')
