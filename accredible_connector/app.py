@@ -140,11 +140,15 @@ def delivery_completed():
                 'email': email
             }
         }
+        print(payload)
         headers = {
             'Content-Type': 'application/json',
             'Authorization': 'Token token={0}'.format(api_key)
         }
-        requests.post(url, json=payload, headers=headers)
+        print(headers)
+        response = requests.post(url, json=payload, headers=headers)
+        print('status code', response.status_code)
+        print(response.raw)
     return jsonify()
 
 
@@ -184,9 +188,7 @@ def configure():
         response = requests.get(url, headers=headers)
         exam_json = response.json()
         examinee_schema = exam_json['examinee_schema']
-        examinee_schema_keys = examinee_schema.keys()
-        examinee_schema_keys.sort()
-    return render_template('configure.html', exam_id=exam_id, token=token, form=form, examinee_schema_keys=examinee_schema_keys)
+    return render_template('configure.html', exam_id=exam_id, token=token, form=form, examinee_schema=examinee_schema)
 
 
 @app.route('/complete')

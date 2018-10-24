@@ -102,11 +102,7 @@
             {{ form.email_map() }}
             <input type="submit" value="Submit" class="button" />
         </form>
-        <ul>
-            {% for key in examinee_info_keys %}
-                <li>{{ key }}</li>
-            {% endfor %}
-        </ul>
+        {{ examinee_schema|pprint }}
     </section>
 </body>
 </html>
