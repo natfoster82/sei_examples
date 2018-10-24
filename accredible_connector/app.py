@@ -9,7 +9,7 @@ from flask_wtf.csrf import CSRFProtect
 from redis import StrictRedis
 from requests.auth import HTTPBasicAuth
 from werkzeug.contrib.fixers import ProxyFix
-from wtforms import StringField
+from wtforms import StringField, IntegerField
 
 
 # app setup
@@ -42,7 +42,7 @@ def get_integration_info(exam_id):
 
 class ConfigureForm(FlaskForm):
     api_key = StringField('API Key')
-    group_id = StringField('Group ID')
+    group_id = IntegerField('Group ID')
     name_map = StringField('Name Map')
     email_map = StringField('Email Map')
 
@@ -134,21 +134,19 @@ def delivery_completed():
             return jsonify(), 400
 
         payload = {
-            'group_id': group_id,
-            'recipient': {
-                'name': name,
-                'email': email
+            'credential': {
+                'group_id': group_id,
+                'recipient': {
+                    'name': name,
+                    'email': email
+                }
             }
         }
-        print(payload)
         headers = {
             'Content-Type': 'application/json',
             'Authorization': 'Token token={0}'.format(api_key)
         }
-        print(headers)
         response = requests.post(url, json=payload, headers=headers)
-        print('status code', response.status_code)
-        print(response.raw)
     return jsonify()
 
 
