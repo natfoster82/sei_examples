@@ -6,7 +6,6 @@ import jwt
 from flask import Flask, render_template, request, abort, jsonify, redirect, url_for
 from flask_wtf import FlaskForm
 from flask_wtf.csrf import CSRFProtect
-from jinja2.sandbox import SandboxedEnvironment
 from redis import StrictRedis
 from requests.auth import HTTPBasicAuth
 from werkzeug.contrib.fixers import ProxyFix
@@ -46,9 +45,6 @@ class ConfigureForm(FlaskForm):
     group_id = StringField('Group ID')
     name_map = StringField('Name Map')
     email_map = StringField('Email Map')
-
-
-sandbox = SandboxedEnvironment()
 
 
 # views
@@ -110,11 +106,12 @@ def delivery_completed():
         name = None
         email = None
         examinee_info = delivery_json['examinee']['info']
-
         name_map = integration_info.get('name_map')
         if name_map:
-            name_template = sandbox.from_string(name_map)
-            name = name_template.render(**examinee_info)
+            name = str(name_map)
+            for key in examinee_info:
+                key_code = '[{0}]'.format(key)
+                name = name.replace(key_code, examinee_info[key])
         else:
             for key in examinee_info:
                 if 'name' in key.lower():
@@ -123,8 +120,10 @@ def delivery_completed():
 
         email_map = integration_info.get('email_map')
         if email_map:
-            email_template = sandbox.from_string(email_map)
-            email = email_template.render(**examinee_info)
+            email = str(email_map)
+            for key in examinee_info:
+                key_code = '[{0}]'.format(key)
+                email = email.replace(key_code, examinee_info[key])
         else:
             for key in examinee_info:
                 if 'email' in key.lower():
@@ -136,8 +135,10 @@ def delivery_completed():
 
         payload = {
             'group_id': group_id,
-            'name': name,
-            'email': email
+            'recipient': {
+                'name': name,
+                'email': email
+            }
         }
         headers = {
             'Content-Type': 'application/json',
@@ -171,11 +172,21 @@ def configure():
         abort(403)
     form = ConfigureForm(**integration_info)
     if form.validate_on_submit():
-        integration_info['slack_webhook_url'] = form.slack_webhook_url.data
-        integration_info['slack_channel'] = form.slack_channel.data
+        integration_info['api_key'] = form.api_key.data
+        integration_info['group_id'] = form.group_id.data
+        integration_info['name_map'] = form.name_map.data
+        integration_info['email_map'] = form.email_map.data
         redis_store.set(exam_id, dumps(integration_info))
         return redirect(url_for('complete'))
-    return render_template('configure.html', exam_id=exam_id, token=token, form=form)
+    else:
+        url = '{0}/api/exams/{1}?only=examinee_schema'.format(app.config['SEI_URL_BASE'], exam_id)
+        headers = {'Authorization': 'Bearer {0}'.format(integration_info['token'])}
+        response = requests.get(url, headers=headers)
+        exam_json = response.json()
+        examinee_schema = exam_json['examinee_schema']
+        examinee_schema_keys = examinee_schema.keys()
+        examinee_schema_keys.sort()
+    return render_template('configure.html', exam_id=exam_id, token=token, form=form, examinee_schema_keys=examinee_schema_keys)
 
 
 @app.route('/complete')
