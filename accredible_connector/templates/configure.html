@@ -129,17 +129,16 @@
     <section>
         <img src="{{ url_for('static', filename='logo_accredible.png') }}" width="54" height="54"/>
         <h1>SEI Delivery Results to Accredible</h1>
-        <p>To complete this integration please complete this form:</p>
-        <p><small>Accredible API integrations? <a href="https://dashboard.accredible.com/issuer/dashboard/settings/api_integrations" target="_blank">Learn More</a></small></p>
+        <p><small>Looking for your Accredible API Key? <a href="https://dashboard.accredible.com/issuer/dashboard/settings/api_integrations" target="_blank">Learn More</a></small></p>
         <p></p>
         <form method="post" action="">
             {{ form.hidden_tag() }}
             {{ form.api_key.label() }}
-            <div class="tooltip">?
-                <span class="tooltiptext">
-                    The Accredible API key can be found by...
-                </span>
-            </div>
+{#            <div class="tooltip">?#}
+{#                <span class="tooltiptext">#}
+{#                    The Accredible API key can be found by...#}
+{#                </span>#}
+{#            </div>#}
             {% if form.api_key.errors %}
                  <ul>
                     {% for error in form.api_key.errors %}
@@ -150,11 +149,11 @@
             {{ form.api_key() }}
 
             {{ form.group_id.label() }}
-            <div class="tooltip">?
-                <span class="tooltiptext">
-                    The Accredible Group ID can be found by...
-                </span>
-            </div>
+{#            <div class="tooltip">?#}
+{#                <span class="tooltiptext">#}
+{#                    The Accredible Group ID can be found by...#}
+{#                </span>#}
+{#            </div>#}
             {% if form.group_id.errors %}
                  <ul>
                     {% for error in form.group_id.errors %}
@@ -163,15 +162,15 @@
                  </ul>
             {% endif %}
             {{ form.group_id() }}
-                <h3>Use variable names in the Accredible schema to map to the following fields for SEI:</h3>
-                <p>Enter each field name from the schema in brackets &quot;[ ]&quot;.</p>
+                <h3>Use variable names in the examinee schema to map to the following fields Accredible requires:</h3>
+                <p>Enter each field name from the examinee schema in brackets &quot;[ ]&quot;.</p>
                 </ul>
                 <div class="row">
                     <div class="leftCol">
                             {{ form.name_map.label() }}
                             <div class="tooltip">?
                                 <span class="tooltiptext">
-                                    Example: [firstName][lastName]
+                                    Example: [First Name] [Last Name]
                                 </span>
                             </div>
                             {% if form.name_map.errors %}
@@ -199,7 +198,7 @@
                         {{ form.email_map() }}
                     </div>
                     <div class="rightCol">
-                        <h4>Accredible Schema</h4>
+                        <h4>SEI Examinee Schema</h4>
                         {% for i in examinee_schema %}
                             <div data-key="{{ i['key'] }}"><p>{{ i['key'] }} <button type="button" class="copy_btn" data-clipboard-text="[{{ i['key'] }}]">Copy</button></p></div>
                         {% endfor %}
