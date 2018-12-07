@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SEI Delivery Results to Accredible</title>
+</head>
+<style>
+    html, body {
+        font-family: Arial, Helvetica, sans-serif;
+        background: #fff;
+    }
+    section {
+        width: 98%;
+        margin: 30px auto;
+        background: #eee;
+        border-radius: 10px;
+        padding: 10px 50px 30px 100px;
+        box-sizing: border-box;
+    }
+    img {
+        float:left;
+        margin-left: -75px;
+        margin-top: 16px;
+    }
+    a {
+        color: #be1515;
+    }
+    .button {
+        text-decoration:none;
+        background: #be1515;
+        padding: 3px 15px;
+        color: #fff;
+        font-size: 14px;
+        border-radius: 3px;
+        margin-top: 15px;
+        display:inline-block;
+        text-transform: uppercase;
+    }
+</style>
+<body id="extItemIntegration">
+    <section>
+        <img src="{{ url_for('static', filename='logo_accredible.png') }}" width="54" height="54"/>
+        <h1>SEI Delivery Results to Accredible</h1>
+        <p>Results of completed tests are automatically sent to Accredible so test takers can automatically receive Accredible certifications.</p>
+        <a href="{{ config.SEI_URL_BASE }}/integrate?caveon_id={{ config.SEI_ID }}" class="button">Setup integration</a>
+    </section>
+</body>
+</html>

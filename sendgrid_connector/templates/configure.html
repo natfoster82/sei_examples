@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Configure</title>
+    <style>
+        html, body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #fff;
+        }
+        section {
+            width: 98%;
+            margin: 30px auto;
+            background: #eee;
+            border-radius: 10px;
+            padding: 10px 50px 30px 100px;
+            box-sizing: border-box;
+            }
+            .button {
+                border: none;
+                text-decoration:none;
+                background: #be1515;
+                padding: 3px 15px;
+                color: #fff;
+                font-size: 14px;
+                border-radius: 3px;
+                text-transform: uppercase;
+            }
+            a {
+                color: #be1515;
+            }
+            img {
+                float:left;
+                margin-left: -75px;
+                margin-top: 16px;
+            }
+            input[type="text"] {
+                padding: 5px;
+                width: 100%;
+                min-height: 20px;
+                margin-bottom: 15px;
+                font-size: 14px;
+            }
+            ul {
+                padding-left:15px;
+            }
+            li {
+                padding-left:5px;
+                color: #be1515;
+                font-size: 11px;
+            }
+            .row {
+                display:flex;
+                flex-direction: row;
+            }
+            .leftCol, .rightCol {
+                flex:1;
+            }
+            .rightCol button {
+                background: #333333;
+                color: #ffffff;
+                border-radius: 3px;
+                border:none;
+                margin-left: 20px;
+                cursor: pointer;
+            }
+            .rightCol button:hover {
+                background: #ffffff;
+                color: #333333;
+            }
+            .rightCol {
+                background: #ddd;
+                border: 1px solid #ccc;
+                padding: 0px 20px 20px;
+                border-radius: 8px;
+                margin-left: 5%;
+            }
+            .rightCol p {
+                border-bottom:1px solid #ccc;
+                padding: 0 0 5px;
+            }
+            .tooltip {
+                position: relative;
+                border-bottom: 1px dotted black;
+                float: right;
+                background: #000;
+                color: #fff;
+                padding: 3px 7px 2px;
+                border-radius: 50px;
+                font-size: 12px;
+                margin-bottom: 4px;
+                margin-top: -4px;
+            }
+            .tooltip .tooltiptext {
+                visibility: hidden;
+                width: 320px;
+                background-color: black;
+                color: #fff;
+                border-radius: 6px;
+                position: absolute;
+                z-index: 1;
+            }
+            .tooltip .tooltiptext {
+                width: 270px;
+                top: 100%;
+                left: 50%;
+                margin-left: -260px;
+                padding: 6px 10px 6px;
+                font-size: 13px;
+                margin-top:8px;
+            }
+            .tooltip .tooltiptext::after {
+                content: " ";
+                position: absolute;
+                bottom: 100%;
+                left: 90%;
+                margin-left: -5px;
+                border-width: 5px;
+                border-style: solid;
+                border-color: transparent transparent black transparent;
+            }
+            .tooltip:hover .tooltiptext {
+                visibility: visible;
+            }
+    </style>
+    <script type="text/javascript" src="{{ url_for('static', filename='clipboard.min.js') }}"></script>
+</head>
+<body>
+    <section>
+        <img src="{{ url_for('static', filename='logo_accredible.png') }}" width="54" height="54"/>
+        <h1>SEI Delivery Results to Accredible</h1>
+        <p><small>Looking for your Accredible API Key? <a href="https://dashboard.accredible.com/issuer/dashboard/settings/api_integrations" target="_blank">Learn More</a></small></p>
+        <p></p>
+        <form method="post" action="">
+            {{ form.hidden_tag() }}
+            {{ form.api_key.label() }}
+{#            <div class="tooltip">?#}
+{#                <span class="tooltiptext">#}
+{#                    The Accredible API key can be found by...#}
+{#                </span>#}
+{#            </div>#}
+            {% if form.api_key.errors %}
+                 <ul>
+                    {% for error in form.api_key.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                 </ul>
+            {% endif %}
+            {{ form.api_key() }}
+
+            {{ form.group_id.label() }}
+{#            <div class="tooltip">?#}
+{#                <span class="tooltiptext">#}
+{#                    The Accredible Group ID can be found by...#}
+{#                </span>#}
+{#            </div>#}
+            {% if form.group_id.errors %}
+                 <ul>
+                    {% for error in form.group_id.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                 </ul>
+            {% endif %}
+            {{ form.group_id() }}
+                <h3>Use variable names in the examinee schema to map to the following fields Accredible requires:</h3>
+                <p>Enter each field name from the examinee schema in brackets &quot;[ ]&quot;.</p>
+                </ul>
+                <div class="row">
+                    <div class="leftCol">
+                            {{ form.name_map.label() }}
+                            <div class="tooltip">?
+                                <span class="tooltiptext">
+                                    Example: [First Name] [Last Name]
+                                </span>
+                            </div>
+                            {% if form.name_map.errors %}
+                                    <ul>
+                                    {% for error in form.name_map.errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                 </ul>
+                            {% endif %}
+                        {{ form.name_map() }}
+
+                        {{ form.email_map.label() }}
+                        <div class="tooltip">?
+                                <span class="tooltiptext">
+                                    Example: [Email]
+                                </span>
+                            </div>
+                        {% if form.email_map.errors %}
+                            <ul>
+                                {% for error in form.email_map.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                        {{ form.email_map() }}
+                    </div>
+                    <div class="rightCol">
+                        <h4>SEI Examinee Schema</h4>
+                        {% for i in examinee_schema %}
+                            <div data-key="{{ i['key'] }}"><p>{{ i['key'] }} <button type="button" class="copy_btn" data-clipboard-text="[{{ i['key'] }}]">Copy</button></p></div>
+                        {% endfor %}
+                    </div>
+                </div>
+            <input type="submit" value="Submit" class="button" />
+        </form>
+    </section>
+    <script type="text/javascript">
+    new ClipboardJS('.copy_btn');
+    </script>
+</body>
+</html>

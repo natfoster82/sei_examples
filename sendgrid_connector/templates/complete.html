@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Integration complete</title>
+</head>
+<style>
+    html, body {
+        font-family: Arial, Helvetica, sans-serif;
+        background: #fff;
+    }
+    h3 {
+        color: #be1515;
+    }
+    section {
+        width: 98%;
+        margin: 30px auto;
+        background: #eee;
+        border-radius: 10px;
+        padding: 10px 50px 30px 100px;
+        box-sizing: border-box;
+        }
+    img {
+        float:left;
+        margin-left: -75px;
+        margin-top: 16px;
+    }
+</style>
+<body>
+    <section>
+        <img src="{{ url_for('static', filename='logo_accredible.png') }}" width="54" height="54"/>
+        <h1>SEI Delivery Results to Accredible</h1>
+        <h3>The integration is complete!</h3>
+        <p>Results of completed tests will automatically be sent to Accredible.</p>
+    </section>
+</body>
+</html>
