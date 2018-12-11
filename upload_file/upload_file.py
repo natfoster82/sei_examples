@@ -5,14 +5,14 @@ import os
 from mimetypes import guess_type
 
 # get credentials to post to the exam
-# sei_id = input('What is your app\'s ID? ')
-# sei_secret = input('What is your app\'s secret? ')
-# exam_id = input('What is your Exam ID? ')
+sei_id = input('What is your app\'s ID? ')
+sei_secret = input('What is your app\'s secret? ')
+exam_id = input('What is your Exam ID? ')
 
-# or hardcode them
-sei_id = 'aeb1ab96-47c8-4d06-8170-0b9a548628c3'
-sei_secret = '5805a47f1dfa391d8ed809eb59a91b48'
-exam_id = '84b20449-d850-470e-a510-476e4ff748a1'
+# or uncomment these lines and hard code the values
+# sei_id = '<app id here>'
+# sei_secret = '<app secret here>'
+# exam_id = '<exam id here>'
 
 url_base = 'https://sei.caveon.com'
 
@@ -47,9 +47,21 @@ print('Creating file object in SEI')
 post_response = requests.post(post_url, json=post_payload, headers=post_headers)
 
 if post_response.status_code == 201:
-    do_delete = True
     post_json = post_response.json()
     pprint(post_json)
+    print('')
+
+    upload_url = post_json['upload_info']['url']
+    upload_data = post_json['upload_info']['fields']
+    upload_headers = {
+        'x-amz-server-side-encryption': 'AES256'
+    }
+    upload_files = {'file': open(file_name, 'rb')}
+
+    upload_response = requests.post(upload_url, files=upload_files, headers=upload_headers, data=upload_data)
+    if upload_response.status_code == 204:
+        print('Upload successful. Download your file here:')
+        print(post_json['download_url'])
 
 else:
     print('Error creating the file in SEI')
