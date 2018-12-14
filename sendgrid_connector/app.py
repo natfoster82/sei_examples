@@ -40,11 +40,9 @@ def get_integration_info(exam_id):
     return data
 
 
-class ConfigureForm(FlaskForm):
+class ApiKeyForm(FlaskForm):
+    # TODO: build api key validator
     api_key = StringField('API Key')
-    group_id = IntegerField('Group ID')
-    name_map = StringField('Name Map')
-    email_map = StringField('Email Map')
 
 
 # views
@@ -79,9 +77,9 @@ def sei_redirect():
     return redirect(url_for('configure', jwt=token, exam_id=exam_id))
 
 
-@app.route('/delivery_completed', methods=['POST'])
+@app.route('/events', methods=['POST'])
 @csrf.exempt
-def delivery_completed():
+def events():
     # authorize the request
     body = request.get_json()
     exam_id = body['exam_id']
@@ -100,53 +98,13 @@ def delivery_completed():
     delivery_response = requests.get(delivery_url, headers=delivery_headers)
     delivery_json = delivery_response.json()
     api_key = integration_info.get('api_key')
-    group_id = integration_info.get('group_id')
-    if delivery_json['passed'] and api_key and group_id:
-        url = 'https://api.accredible.com/v1/credentials'
-        name = None
-        email = None
-        examinee_info = delivery_json['examinee']['info']
-        name_map = integration_info.get('name_map')
-        if name_map:
-            name = str(name_map)
-            for key in examinee_info:
-                key_code = '[{0}]'.format(key)
-                name = name.replace(key_code, examinee_info[key])
-        else:
-            for key in examinee_info:
-                if 'name' in key.lower():
-                    name = examinee_info[key]
-                    break
-
-        email_map = integration_info.get('email_map')
-        if email_map:
-            email = str(email_map)
-            for key in examinee_info:
-                key_code = '[{0}]'.format(key)
-                email = email.replace(key_code, examinee_info[key])
-        else:
-            for key in examinee_info:
-                if 'email' in key.lower():
-                    email = examinee_info[key]
-                    break
-
-        if not name or not email:
-            return jsonify(), 400
-
-        payload = {
-            'credential': {
-                'group_id': group_id,
-                'recipient': {
-                    'name': name,
-                    'email': email
-                }
-            }
-        }
-        headers = {
-            'Content-Type': 'application/json',
-            'Authorization': 'Token token={0}'.format(api_key)
-        }
-        response = requests.post(url, json=payload, headers=headers)
+    if api_key:
+        event = body['event']
+        configs = integration_info.get('configs', [])
+        for config in configs:
+            if config['event'] == event:
+                pass
+                # response = requests.post(url, json=payload, headers=headers)
     return jsonify()
 
 
@@ -163,7 +121,39 @@ def delivery_widget():
     return render_template('delivery_widget.html', exam_id=exam_id, delivery_id=delivery_id, token=token)
 
 
-@app.route('/configure', methods=['GET', 'POST'])
+@app.route('/switch')
+def switch():
+    exam_id = request.args.get('exam_id')
+    token = request.args.get('jwt')
+    integration_info = get_integration_info(exam_id)
+    try:
+        decoded = jwt.decode(token, integration_info['secret'], algorithms=['HS256'])
+    except jwt.exceptions.InvalidTokenError:
+        abort(403)
+
+    if integration_info.get('api_key'):
+        return redirect(url_for('configure', **request.args))
+    return redirect(url_for('api_key', **request.args))
+
+
+@app.route('/api_key', methods=['GET', 'POST'])
+def api_key():
+    exam_id = request.args.get('exam_id')
+    token = request.args.get('jwt')
+    integration_info = get_integration_info(exam_id)
+    try:
+        decoded = jwt.decode(token, integration_info['secret'], algorithms=['HS256'])
+    except jwt.exceptions.InvalidTokenError:
+        abort(403)
+    form = ApiKeyForm(api_key=integration_info.get('api_key'))
+    if form.validate_on_submit():
+        integration_info['api_key'] = form.api_key.data
+        redis_store.set(exam_id, dumps(integration_info))
+        return redirect(url_for('configure', **request.args))
+    return render_template('api_key.html', form=form)
+
+
+@app.route('/configure')
 def configure():
     exam_id = request.args.get('exam_id')
     token = request.args.get('jwt')
@@ -172,21 +162,35 @@ def configure():
         decoded = jwt.decode(token, integration_info['secret'], algorithms=['HS256'])
     except jwt.exceptions.InvalidTokenError:
         abort(403)
-    form = ConfigureForm(**integration_info)
-    if form.validate_on_submit():
-        integration_info['api_key'] = form.api_key.data
-        integration_info['group_id'] = form.group_id.data
-        integration_info['name_map'] = form.name_map.data
-        integration_info['email_map'] = form.email_map.data
-        redis_store.set(exam_id, dumps(integration_info))
-        return redirect(url_for('complete'))
-    else:
-        url = '{0}/api/exams/{1}?only=examinee_schema'.format(app.config['SEI_URL_BASE'], exam_id)
-        headers = {'Authorization': 'Bearer {0}'.format(integration_info['token'])}
-        response = requests.get(url, headers=headers)
-        exam_json = response.json()
-        examinee_schema = exam_json['examinee_schema']
-    return render_template('configure.html', exam_id=exam_id, token=token, form=form, examinee_schema=examinee_schema)
+    url = '{0}/api/exams/{1}?only=examinee_schema'.format(app.config['SEI_URL_BASE'], exam_id)
+    headers = {'Authorization': 'Bearer {0}'.format(integration_info['token'])}
+    response = requests.get(url, headers=headers)
+    exam_json = response.json()
+    examinee_schema = exam_json['examinee_schema']
+
+    sg_base = 'https://api.sendgrid.com/v3'
+    sg_headers = {'Authorization': 'Bearer {0}'.format(integration_info['api_key'])}
+
+    templates_url = sg_base + '/templates'
+    templates_response = requests.get(templates_url, headers=sg_headers)
+    # TODO: get senders as well, preferably multi-threaded along with the sei request
+    # TODO: put templates and senders in configure.html context
+    return render_template('configure.html', exam_id=exam_id, token=token, examinee_schema=examinee_schema)
+
+
+@app.route('/configure', methods=['POST'])
+def post_configuration():
+    data = request.get_json()
+    exam_id = data['exam_id']
+    token = data['jwt']
+    integration_info = get_integration_info(exam_id)
+    try:
+        decoded = jwt.decode(token, integration_info['secret'], algorithms=['HS256'])
+    except jwt.exceptions.InvalidTokenError:
+        return jsonify(), 403
+    integration_info['configs'] = data['configs']
+    redis_store.set(exam_id, dumps(integration_info))
+    return jsonify()
 
 
 @app.route('/complete')
