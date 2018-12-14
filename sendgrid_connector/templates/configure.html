@@ -3,212 +3,309 @@
 <head>
     <meta charset="UTF-8">
     <title>Configure</title>
-    <style>
+    <style scoped>
         html, body {
             font-family: Arial, Helvetica, sans-serif;
             background: #fff;
+        }
+        h2, h3, h4 {
+            color:#000;
+        }
+        h2, h3, h4, h5 {
+            margin-top:0;
+            margin-bottom: 10px;
+        }
+        h4 {
+            margin-bottom: 3px;
         }
         section {
             width: 98%;
             margin: 30px auto;
             background: #eee;
             border-radius: 10px;
-            padding: 10px 50px 30px 100px;
+            padding: 10px 50px 30px 140px;
             box-sizing: border-box;
+            overflow: auto;
+
             }
-            .button {
-                border: none;
-                text-decoration:none;
-                background: #be1515;
-                padding: 3px 15px;
-                color: #fff;
-                font-size: 14px;
-                border-radius: 3px;
-                text-transform: uppercase;
-            }
-            a {
-                color: #be1515;
-            }
-            img {
-                float:left;
-                margin-left: -75px;
-                margin-top: 16px;
-            }
-            input[type="text"] {
-                padding: 5px;
-                width: 100%;
-                min-height: 20px;
-                margin-bottom: 15px;
-                font-size: 14px;
-            }
-            ul {
-                padding-left:15px;
-            }
-            li {
-                padding-left:5px;
-                color: #be1515;
-                font-size: 11px;
-            }
-            .row {
-                display:flex;
-                flex-direction: row;
-            }
-            .leftCol, .rightCol {
-                flex:1;
-            }
-            .rightCol button {
-                background: #333333;
-                color: #ffffff;
-                border-radius: 3px;
-                border:none;
-                margin-left: 20px;
-                cursor: pointer;
-            }
-            .rightCol button:hover {
-                background: #ffffff;
-                color: #333333;
-            }
-            .rightCol {
-                background: #ddd;
-                border: 1px solid #ccc;
-                padding: 0px 20px 20px;
-                border-radius: 8px;
-                margin-left: 5%;
-            }
-            .rightCol p {
-                border-bottom:1px solid #ccc;
-                padding: 0 0 5px;
-            }
-            .tooltip {
-                position: relative;
-                border-bottom: 1px dotted black;
-                float: right;
-                background: #000;
-                color: #fff;
-                padding: 3px 7px 2px;
-                border-radius: 50px;
-                font-size: 12px;
-                margin-bottom: 4px;
-                margin-top: -4px;
-            }
-            .tooltip .tooltiptext {
-                visibility: hidden;
-                width: 320px;
-                background-color: black;
-                color: #fff;
-                border-radius: 6px;
-                position: absolute;
-                z-index: 1;
-            }
-            .tooltip .tooltiptext {
-                width: 270px;
-                top: 100%;
-                left: 50%;
-                margin-left: -260px;
-                padding: 6px 10px 6px;
-                font-size: 13px;
-                margin-top:8px;
-            }
-            .tooltip .tooltiptext::after {
-                content: " ";
-                position: absolute;
-                bottom: 100%;
-                left: 90%;
-                margin-left: -5px;
-                border-width: 5px;
-                border-style: solid;
-                border-color: transparent transparent black transparent;
-            }
-            .tooltip:hover .tooltiptext {
-                visibility: visible;
-            }
+        .button {
+            border: none;
+            text-decoration:none;
+            background: #be1515;
+            padding: 3px 15px;
+            color: #fff;
+            font-size: 14px;
+            border-radius: 3px;
+            text-transform: uppercase;
+        }
+        .button2 {
+            border: none;
+            text-decoration:none;
+            background: #000;
+            padding: 3px 15px;
+            color: #fff;
+            font-size: 14px;
+            border-radius: 3px;
+            text-transform: uppercase;
+            margin-right: 15px;
+        }
+        a {
+            color: #be1515;
+        }
+        img {
+            float:left;
+            margin-left: -110px;
+            margin-top: 0px;
+        }
+        select {
+            height: 30px;
+            width: 100%;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        input[type="text"] {
+            padding: 5px;
+            width: 95%;
+            min-height: 20px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            height: 20px;
+        }
+        .mapping label, .mapping input[type="text"], .mapping select {
+            flex: 1;
+            margin-right: 10px;
+            line-height: 30px;
+            margin-bottom:0;
+        }
+        .mapping li {
+            border-bottom: 1px dotted #ddd;
+        }
+        .mapping .leftCol input[type="text"] {
+            margin-bottom:3px;
+        }
+        ul {
+            list-style: none;
+            padding:0 5px;
+            margin-top:0;
+        }
+        li {
+            font-size: .85em;
+            padding: 3px;
+        }
+        .mapping li {
+            display:flex;
+        }
+        fieldset {
+            border: 2px solid #000;
+            background: #fff;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        .row {
+            display:flex;
+            flex-direction: row;
+        }
+        
+        .leftCol {
+            flex:2;
+        }
+        .rightCol {
+            flex:1;
+            border: 1px solid #ccc;
+            padding: 0px 20px 20px;
+            border-radius: 8px;
+            margin-left: 5%;
+        }
+        .mapping .leftCol, .mapping .rightCol {
+            overflow-y:scroll;
+            max-height: 300px;
+            border-radius: 0;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        .mapping .rightCol li {
+            border-bottom: 1px dotted #ddd;
+            display:block;
+        }
+        .rightCol button {
+            background: #333333;
+            color: #ffffff;
+            border-radius: 3px;
+            border:none;
+            margin-left: 20px;
+            cursor: pointer;
+        }
+        .rightCol button:hover {
+            background: #ffffff;
+            color: #333333;
+        }
+        .rightCol p {
+            border-bottom:1px solid #ccc;
+            padding: 0 0 5px;
+        }
+
+
+        .floatRight {
+            float:right;
+        }
+        .mapping h4 {
+            margin-top: 0;
+        }
+
+
+        .tooltip {
+            position: relative;
+            border-bottom: 1px dotted black;
+            float: right;
+            background: #000;
+            color: #fff;
+            padding: 3px 7px 2px;
+            border-radius: 50px;
+            font-size: 12px;
+            margin-bottom: 4px;
+            margin-top: -4px;
+        }
+        .tooltip a {
+            color: #fff;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 320px;
+            background-color: black;
+            color: #fff;
+            border-radius: 6px;
+            position: absolute;
+            z-index: 1;
+        }
+        .tooltip .tooltiptext {
+            width: 270px;
+            top: 100%;
+            left: 50%;
+            margin-left: -260px;
+            padding: 6px 10px 6px;
+            font-size: 13px;
+            margin-top:8px;
+        }
+        .tooltip .tooltiptext::after {
+            content: " ";
+            position: absolute;
+            bottom: 100%;
+            left: 90%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: transparent transparent black transparent;
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+        }
     </style>
-    <script type="text/javascript" src="{{ url_for('static', filename='clipboard.min.js') }}"></script>
 </head>
 <body>
-    <section>
-        <img src="{{ url_for('static', filename='logo_accredible.png') }}" width="54" height="54"/>
-        <h1>SEI Delivery Results to Accredible</h1>
-        <p><small>Looking for your Accredible API Key? <a href="https://dashboard.accredible.com/issuer/dashboard/settings/api_integrations" target="_blank">Learn More</a></small></p>
-        <p></p>
-        <form method="post" action="">
-            {{ form.hidden_tag() }}
-            {{ form.api_key.label() }}
-{#            <div class="tooltip">?#}
-{#                <span class="tooltiptext">#}
-{#                    The Accredible API key can be found by...#}
-{#                </span>#}
-{#            </div>#}
-            {% if form.api_key.errors %}
-                 <ul>
-                    {% for error in form.api_key.errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                 </ul>
-            {% endif %}
-            {{ form.api_key() }}
-
-            {{ form.group_id.label() }}
-{#            <div class="tooltip">?#}
-{#                <span class="tooltiptext">#}
-{#                    The Accredible Group ID can be found by...#}
-{#                </span>#}
-{#            </div>#}
-            {% if form.group_id.errors %}
-                 <ul>
-                    {% for error in form.group_id.errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                 </ul>
-            {% endif %}
-            {{ form.group_id() }}
-                <h3>Use variable names in the examinee schema to map to the following fields Accredible requires:</h3>
-                <p>Enter each field name from the examinee schema in brackets &quot;[ ]&quot;.</p>
-                </ul>
-                <div class="row">
-                    <div class="leftCol">
-                            {{ form.name_map.label() }}
-                            <div class="tooltip">?
-                                <span class="tooltiptext">
-                                    Example: [First Name] [Last Name]
-                                </span>
+    {% raw %}
+        <div id="app">
+            <section>
+                <form>
+                    <img src="/static/logo-sendgrid.png" alt="SendGrid Logo" width="90"/>
+                    <h1>SEI Data to SendGrid</h1>
+                    <div class="row">
+                        <div class="leftCol">
+                            <div>
+                                <label for="api-key">API Key</label>
+                                <input type="text" name="api-key"/>
                             </div>
-                            {% if form.name_map.errors %}
-                                    <ul>
-                                    {% for error in form.name_map.errors %}
-                                        <li>{{ error }}</li>
-                                    {% endfor %}
-                                 </ul>
-                            {% endif %}
-                        {{ form.name_map() }}
-
-                        {{ form.email_map.label() }}
-                        <div class="tooltip">?
-                                <span class="tooltiptext">
-                                    Example: [Email]
-                                </span>
+                        </div>
+                    </div>
+                    <fieldset v-for="i in email">
+                        <h2>Email Connector 1 <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Delete</button></h2>
+                        <div class="row">
+                            <div class="leftCol">
+                                <div>
+                                    <label for='event'>Choose an event that triggers an email:</label>
+                                    <select name="event">
+                                        <option v-for="i in events">{{ i.event }}</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for='sendGridTemplate'>Select the SendGrid template:</label>
+                                    <select name="sendGridTemplate">
+                                        <option v-for="i in templates">{{ i.template }}</option>
+                                    </select>
+                                </div>
                             </div>
-                        {% if form.email_map.errors %}
-                            <ul>
-                                {% for error in form.email_map.errors %}
-                                    <li>{{ error }}</li>
-                                {% endfor %}
-                            </ul>
-                        {% endif %}
-                        {{ form.email_map() }}
-                    </div>
-                    <div class="rightCol">
-                        <h4>SEI Examinee Schema</h4>
-                        {% for i in examinee_schema %}
-                            <div data-key="{{ i['key'] }}"><p>{{ i['key'] }} <button type="button" class="copy_btn" data-clipboard-text="[{{ i['key'] }}]">Copy</button></p></div>
-                        {% endfor %}
-                    </div>
+                        </div>
+                        <h3>Map SendGrid tags to SEI data:</h3>
+                        <p>For each SendGrid tag enter field names from SEI in brackets "[ ]".<br>
+                            <small>Example:[First Name] [Last Name]</small>
+                        </p>
+                        <div class="row mapping">
+                            <div class="leftCol">
+                                <h4>SendGrid Tags</h4>
+                                <ul>
+                                    <li>
+                                        <label>Name</label>
+                                        <input type="text" name="mapping">
+                                    </li>
+                                    <li>
+                                        <label>Email</label>
+                                        <input type="text" name="mapping">
+                                    </li>
+                                    <li>
+                                        <select>
+                                            <option>sendGrid_tag1</option>
+                                            <option>sendGrid_tag2</option>
+                                            <option>sendGrid_tag3</option>
+                                        </select>
+                                        <input type="text" name="mapping">
+                                    </li>
+                                </ul>
+                                <button class="copy_btn">Add another tag</button>
+                            </div>
+                            <div class="rightCol">
+                                <h4>SEI Examinee Schema</h4>
+                                <ul>
+                                    <li data-key="Name">
+                                        Name <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button>
+                                    </li>
+                                </ul>
+                                <h4>SEI Delivery Data</h4>
+                                <ul>
+                                    <li data-key="Name">
+                                        exam_name <button type="button" class="copy_btn floatRight" data-clipboard-text="[Exam_Name]">Copy</button>
+                                    </li>
+                                </ul>
+                                <h4>SEI Delivery Data</h4>
+                                <ul>
+                                    <li data-key="Name">
+                                        exam_name <button type="button" class="copy_btn floatRight" data-clipboard-text="[Exam_Name]">Copy</button>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </fieldset>
+                </form>
+                <br>
+                <div>
+                    <button class="button2">Add Email Connector</button>
+                    <input type="submit" value="Save settings" class="button floatRight">
                 </div>
-            <input type="submit" value="Submit" class="button" />
-        </form>
-    </section>
+            </section>
+        </div>
+    {% endraw %}
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='clipboard.min.js') }}"></script>
     <script type="text/javascript">
-    new ClipboardJS('.copy_btn');
+        new ClipboardJS('.copy_btn');
     </script>
+    <script type="text/javascript" src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>
+
+
+
+
+
+
+
