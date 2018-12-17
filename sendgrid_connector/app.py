@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from json import loads, dumps
+from multiprocessing.dummy import Pool as ThreadPool
 
 import requests
 import jwt
@@ -25,6 +26,12 @@ csrf = CSRFProtect(app)
 
 # some helpers
 redis_store = StrictRedis.from_url(app.config['REDIS_URL'], db=app.config['REDIS_DB'], decode_responses=True)
+pool = ThreadPool(4)
+
+
+def make_request(request_dict):
+    response = requests.get(request_dict['url'], headers=request_dict['headers'])
+    return response.json()
 
 
 def get_integration_info(exam_id):
@@ -162,24 +169,28 @@ def configure():
         decoded = jwt.decode(token, integration_info['secret'], algorithms=['HS256'])
     except jwt.exceptions.InvalidTokenError:
         abort(403)
+
+    request_dicts = []
+
     url = '{0}/api/exams/{1}?only=examinee_schema'.format(app.config['SEI_URL_BASE'], exam_id)
     headers = {'Authorization': 'Bearer {0}'.format(integration_info['token'])}
-    response = requests.get(url, headers=headers)
-    exam_json = response.json()
-    examinee_schema = exam_json['examinee_schema']
+    request_dicts.append({'url': url, 'headers': headers})
 
     sg_base = 'https://api.sendgrid.com/v3'
     sg_headers = {'Authorization': 'Bearer {0}'.format(integration_info['api_key'])}
 
     templates_url = sg_base + '/templates?generations=dynamic,legacy'
-    templates_response = requests.get(templates_url, headers=sg_headers)
+    request_dicts.append({'url': templates_url, 'headers': sg_headers})
 
     senders_url = sg_base + '/senders'
-    senders_response = requests.get(senders_url, headers=sg_headers)
-    templates = templates_response.json()['templates']
-    senders = senders_response.json()
-    # TODO: multi-threaded along with the sei request
-    return render_template('configure.html', exam_id=exam_id, token=token, examinee_schema=examinee_schema,
+    request_dicts.append({'url': senders_url, 'headers': sg_headers})
+
+    exam_json, templates_json, senders_json = pool.map(make_request, request_dicts)
+    schema = exam_json['examinee_schema']
+    templates = templates_json['templates']
+    senders = senders_json
+
+    return render_template('configure.html', exam_id=exam_id, token=token, schema=schema,
                            templates=templates, senders=senders)
 
 
