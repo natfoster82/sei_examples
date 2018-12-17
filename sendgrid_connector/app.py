@@ -171,11 +171,16 @@ def configure():
     sg_base = 'https://api.sendgrid.com/v3'
     sg_headers = {'Authorization': 'Bearer {0}'.format(integration_info['api_key'])}
 
-    templates_url = sg_base + '/templates'
+    templates_url = sg_base + '/templates?generations=dynamic,legacy'
     templates_response = requests.get(templates_url, headers=sg_headers)
-    # TODO: get senders as well, preferably multi-threaded along with the sei request
-    # TODO: put templates and senders in configure.html context
-    return render_template('configure.html', exam_id=exam_id, token=token, examinee_schema=examinee_schema)
+
+    senders_url = sg_base + '/senders'
+    senders_response = requests.get(senders_url, headers=sg_headers)
+    templates = templates_response.json()['templates']
+    senders = senders_response.json()
+    # TODO: multi-threaded along with the sei request
+    return render_template('configure.html', exam_id=exam_id, token=token, examinee_schema=examinee_schema,
+                           templates=templates, senders=senders)
 
 
 @app.route('/configure', methods=['POST'])
