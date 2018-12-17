@@ -66,7 +66,6 @@
         }
         input[type="text"] {
             padding: 5px;
-            width: 95%;
             min-height: 20px;
             margin-bottom: 15px;
             font-size: 14px;
@@ -78,9 +77,6 @@
             line-height: 30px;
             margin-bottom:0;
         }
-        .mapping li {
-            border-bottom: 1px dotted #ddd;
-        }
         .mapping .leftCol input[type="text"] {
             margin-bottom:3px;
         }
@@ -88,13 +84,13 @@
             list-style: none;
             padding:0 5px;
             margin-top:0;
+            width: 100%;
+            display:block;
         }
         li {
             font-size: .85em;
             padding: 3px;
-        }
-        .mapping li {
-            display:flex;
+            border-bottom: 1px dotted #ddd;
         }
         fieldset {
             border: 2px solid #000;
@@ -108,45 +104,24 @@
             flex-direction: row;
         }
         
-        .leftCol {
-            flex:2;
-        }
-        .rightCol {
+        .leftCol, .rightCol {
             flex:1;
-            border: 1px solid #ccc;
-            padding: 0px 20px 20px;
-            border-radius: 8px;
-            margin-left: 5%;
-        }
-        .mapping .leftCol, .mapping .rightCol {
-            overflow-y:scroll;
+            padding: 15px;
             max-height: 300px;
-            border-radius: 0;
+            overflow-y: scroll;
             border: 1px solid #ccc;
-            padding: 10px;
+            background: #fff;
+            margin-right: 10px;
         }
-        .mapping .rightCol li {
+        .mapping ul {
+            box-sizing: border-box;
+        }
+        .mapping .leftCol li {
             border-bottom: 1px dotted #ddd;
             display:block;
+            padding-bottom: 3px;
+            overflow: auto;
         }
-        .rightCol button {
-            background: #333333;
-            color: #ffffff;
-            border-radius: 3px;
-            border:none;
-            margin-left: 20px;
-            cursor: pointer;
-        }
-        .rightCol button:hover {
-            background: #ffffff;
-            color: #333333;
-        }
-        .rightCol p {
-            border-bottom:1px solid #ccc;
-            padding: 0 0 5px;
-        }
-
-
         .floatRight {
             float:right;
         }
@@ -210,14 +185,6 @@
                 <form>
                     <img src="/static/logo-sendgrid.png" alt="SendGrid Logo" width="90"/>
                     <h1>SEI Data to SendGrid</h1>
-                    <div class="row">
-                        <div class="leftCol">
-                            <div>
-                                <label for="api-key">API Key</label>
-                                <input type="text" name="api-key"/>
-                            </div>
-                        </div>
-                    </div>
                     <fieldset v-for="i in email">
                         <h2>Email Connector 1 <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Delete</button></h2>
                         <div class="row">
@@ -236,60 +203,51 @@
                                 </div>
                             </div>
                         </div>
-                        <h3>Map SendGrid tags to SEI data:</h3>
-                        <p>For each SendGrid tag enter field names from SEI in brackets "[ ]".<br>
-                            <small>Example:[First Name] [Last Name]</small>
-                        </p>
-                        <div class="row mapping">
-                            <div class="leftCol">
-                                <h4>SendGrid Tags</h4>
-                                <ul>
-                                    <li>
-                                        <label>Name</label>
-                                        <input type="text" name="mapping">
-                                    </li>
-                                    <li>
-                                        <label>Email</label>
-                                        <input type="text" name="mapping">
-                                    </li>
-                                    <li>
-                                        <select>
-                                            <option>sendGrid_tag1</option>
-                                            <option>sendGrid_tag2</option>
-                                            <option>sendGrid_tag3</option>
-                                        </select>
-                                        <input type="text" name="mapping">
-                                    </li>
-                                </ul>
-                                <button class="copy_btn">Add another tag</button>
-                            </div>
-                            <div class="rightCol">
-                                <h4>SEI Examinee Schema</h4>
-                                <ul>
-                                    <li data-key="Name">
-                                        Name <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button>
-                                    </li>
-                                </ul>
-                                <h4>SEI Delivery Data</h4>
-                                <ul>
-                                    <li data-key="Name">
-                                        exam_name <button type="button" class="copy_btn floatRight" data-clipboard-text="[Exam_Name]">Copy</button>
-                                    </li>
-                                </ul>
-                                <h4>SEI Delivery Data</h4>
-                                <ul>
-                                    <li data-key="Name">
-                                        exam_name <button type="button" class="copy_btn floatRight" data-clipboard-text="[Exam_Name]">Copy</button>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
                     </fieldset>
                 </form>
                 <br>
                 <div>
                     <button class="button2">Add Email Connector</button>
                     <input type="submit" value="Save settings" class="button floatRight">
+                </div>
+                <br><br>
+                
+                <div class="row mapping">
+                    <div class="leftCol">
+                        <h3>Tags you can use in your SendGrid templates:</h3>
+                        <ul>
+                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button></li>
+                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button></li>
+                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button></li>
+                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button></li>
+                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button></li>
+                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button></li>
+                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button></li>
+                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button></li>  <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button></li>
+                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button></li>
+                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button></li>
+                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button></li>
+                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button></li>
+                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button></li>
+                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button></li>
+                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button></li>
+                        </ul>
+                    </div>
+                    <div class="rightCol">
+                        <h3>Create your own tags:</h3>
+                            <label>Create a tag:</label>
+                            [% <input name="name" type="text"/> %]
+                            <button>Save</button>
+                            <hr>
+                            <h3>My Tags:</h3>
+                        <ul>
+                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button><button type="button" class="copy_btn floatRight">Delete</button></li>
+                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button><button type="button" class="copy_btn floatRight">Delete</button></li>
+                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button><button type="button" class="copy_btn floatRight">Delete</button></li>
+                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button><button type="button" class="copy_btn floatRight">Delete</button></li>
+                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button><button type="button" class="copy_btn floatRight">Delete</button></li>
+                        </ul>
+                    </div>
                 </div>
             </section>
         </div>
