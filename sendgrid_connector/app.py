@@ -47,6 +47,28 @@ def get_integration_info(exam_id):
     return data
 
 
+def build_substitutions(delivery, to_dict):
+    substitutions = {
+        '[%name%]': to_dict['name'],
+        '[%email%]': to_dict['email']
+    }
+    return substitutions
+
+
+def build_to(to_template, examinee_info):
+    name_map = to_template['name']
+    name = str(name_map)
+    for key in examinee_info:
+        key_code = '[{0}]'.format(key)
+        name = name.replace(key_code, examinee_info[key])
+    email_map = to_template['email']
+    email = str(email_map)
+    for key in examinee_info:
+        key_code = '[{0}]'.format(key)
+        email = email.replace(key_code, examinee_info[key])
+    return {'name': name, 'email': email}
+
+
 class ApiKeyForm(FlaskForm):
     # TODO: build api key validator
     api_key = StringField('API Key')
@@ -99,19 +121,32 @@ def events():
         return jsonify(), 403
 
     # get full delivery object from SEI
+    # TODO: only do this for delivery type events
     delivery_id = body['delivery_id']
     delivery_url = '{0}/api/exams/{1}/deliveries/{2}?include=exam'.format(app.config['SEI_URL_BASE'], exam_id, delivery_id)
     delivery_headers = {'Authorization': 'Bearer {0}'.format(integration_info['token'])}
     delivery_response = requests.get(delivery_url, headers=delivery_headers)
     delivery_json = delivery_response.json()
+    examinee_info = delivery_json['examinee']['info']
     api_key = integration_info.get('api_key')
     if api_key:
         event = body['event']
         configs = integration_info.get('configs', [])
+        sg_url = 'https://api.sendgrid.com/v3/mail/send'
+        sg_headers = {'Authorization': 'Bearer {0}'.format(api_key)}
         for config in configs:
             if config['event'] == event:
-                pass
-                # response = requests.post(url, json=payload, headers=headers)
+                to_dict = build_to(config['to_template'], examinee_info)
+                sg_payload = {
+                    'from': config['from'],
+                    'template_id': config['template_id'],
+                    'personalizations': {
+                        'to': to_dict,
+                        'substitutions': build_substitutions(delivery_json, to_dict)
+
+                    }
+                }
+                requests.post(sg_url, json=sg_payload, headers=sg_headers)
     return jsonify()
 
 
