@@ -6,7 +6,6 @@ import requests
 import jwt
 from flask import Flask, render_template, request, abort, jsonify, redirect, url_for
 from flask_wtf import FlaskForm
-from flask_wtf.csrf import CSRFProtect
 from redis import StrictRedis
 from requests.auth import HTTPBasicAuth
 from werkzeug.contrib.fixers import ProxyFix
@@ -20,9 +19,6 @@ if app.config['PREFERRED_URL_SCHEME'] == 'https':
     app.wsgi_app = ProxyFix(app.wsgi_app)
 
 app.url_map.strict_slashes = False
-
-csrf = CSRFProtect(app)
-
 
 # some helpers
 redis_store = StrictRedis.from_url(app.config['REDIS_URL'], db=app.config['REDIS_DB'], decode_responses=True)
@@ -107,7 +103,6 @@ def sei_redirect():
 
 
 @app.route('/events', methods=['POST'])
-@csrf.exempt
 def events():
     # authorize the request
     body = request.get_json()
@@ -234,8 +229,8 @@ def configure():
 @app.route('/configure', methods=['POST'])
 def post_configuration():
     data = request.get_json()
-    exam_id = data['exam_id']
-    token = data['jwt']
+    exam_id = request.args.get('exam_id')
+    token = request.args.get('jwt')
     integration_info = get_integration_info(exam_id)
     try:
         decoded = jwt.decode(token, integration_info['secret'], algorithms=['HS256'])
