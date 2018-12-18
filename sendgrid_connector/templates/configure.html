@@ -123,6 +123,28 @@
         .floatRight {
             float:right;
         }
+        @media only screen and (max-width: 800px) {
+            section {
+                padding: 30px;
+            }
+            img {
+                display: none;
+            }
+            .row {
+                flex-direction: column;
+            }
+            .leftCol, .rightCol {
+                width: 100%;
+                flex:1;
+                box-sizing: border-box;
+                margin-bottom: 20px;
+            }
+        }
+
+
+
+
+
     </style>
 </head>
 <body>
@@ -216,6 +238,15 @@
                 }
             }
         })
+
+        var sendGridConnector = [];
+
+
+
+
+
+
+
     </script>
     <script type="text/javascript">
         new ClipboardJS('.copy_btn');
