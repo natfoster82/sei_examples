@@ -210,21 +210,24 @@
                             <fieldset v-for="config in configs">
                                 <div>
                                     <label for='event'>Choose an event that triggers an email:</label>
-                                    <select name="event">
+                                    <select name="event" v-model="config.event">
+                                        <option value=""></option>
                                         <option value="delivery_created">Delivery created</option>
-                                        <option value="delivery_created">Delivery completed</option>
+                                        <option value="delivery_completed">Delivery completed</option>
                                     </select>
                                 </div>
                                 <div>
                                     <label for='sendGridTemplate'>Select the SendGrid template:</label>
-                                    <select name="sendGridTemplate">
-                                        <option v-for="template in templates">{{ template.name }}</option>
+                                    <select name="sendGridTemplate" v-model="config.template_id">
+                                        <option value=""></option>
+                                        <option v-for="template in templates" v-bind:value="template.id">{{ template.name }}</option>
                                     </select>
                                 </div>
                                 <div>
                                     <label for='sendGridSender'>Select a SendGrid sender for this email:</label>
-                                    <select name="sendGridSender">
-                                        <option v-for="sender in senders">{{ sender.nickname }}</option>
+                                    <select name="sendGridSender" v-model="config.sender_id">
+                                        <option value=""></option>
+                                        <option v-for="sender in senders" v-bind:value="sender.id">{{ sender.from.name }} - {{ sender.from.email}}</option>
                                     </select>
                                 </div>
                                 <div class="row mapping">
@@ -232,21 +235,21 @@
                                         <h5>Map SendGrid name and email fields to the SEI examinee Schema:</h5>
                                         <div>
                                             <label for='recipientName'>Add recipient name field:
-                                                <div class="tooltip">?<span class="tooltiptext">Example: [% First Name %] [% Last Name %]</span></div>
+                                                <div class="tooltip">?<span class="tooltiptext">Example: [First Name] [Last Name]</span></div>
                                                 </label>
-                                            <input type="text" name="recipientName">
+                                            <input type="text"  v-model="config.name">
                                         </div>
                                         <div>
                                             <label for='recipientEmail'>Add recipient email field:
-                                                    <div class="tooltip">?<span class="tooltiptext">Example: [% Email %]</span></div>
+                                                    <div class="tooltip">?<span class="tooltiptext">Example: [Email]</span></div>
                                             </label>
-                                            <input type="text" name recipientEmail>
+                                            <input type="text" v-model="config.email">
                                         </div>
                                     </div>
                                     <div class="rightCol">
                                         <h5>Fields in the SEI Examinee Schema:</h5>
                                         <ul>
-                                            <li v-for="tag in schema">[% {{ tag.key }} %]</li>
+                                            <li v-for="tag in schema">[{{ tag.key }}]</li>
                                         </ul>
                                     </div>
                                 </div>
@@ -254,16 +257,16 @@
                             </fieldset>                 
                             <div>
                                 <button class="button2" type="button" v-on:click="addConfig">Add an email connector</button>
-                                <button type="button" class="button floatRight">Save settings</button>
+                                <button type="button" class="button floatRight" v-on:click="save">Save settings</button>
                             </div>
                         </div>
                         <div class="rightCol">
                             <div class="row">
                                 <div class="leftCol">
                                     <h3>You can use these tags in your SendGrid Templates:</h3>
-                                    <h5>Examinee Schema:</h5>
                                     <ul>
-                                        <li v-for="tag in schema">[% {{ tag.key }} %]</li>
+                                        <li>[% name %]</li>
+                                        <li>[% email %]</li>
                                     </ul>
                                 </div>
                             </div>
@@ -274,6 +277,7 @@
         </div>
     {% endraw %}
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='clipboard.min.js') }}"></script>
     <script>
         var GLOBALS = {
@@ -281,6 +285,14 @@
             templates: {{ templates|tojson }},
             schema: {{ schema|tojson }},
             configs: {{ configs|tojson }}
+        }
+        function findById(id, array) {
+            for (var i = 0; i < array.length; i++) {
+                var obj = array[i];
+                if (obj.id === id) {
+                    return obj;
+                } 
+            }
         }
         var app = new Vue({
             el: '#app',
@@ -293,18 +305,23 @@
             methods: {
                 addConfig: function() {
                     this.configs.push({});
+                },
+                save: function() {
+                    for (var i = 0; i < this.configs.length; i++) {
+                        var config = this.configs[i];
+                        var template = findById(config.template_id, this.templates);
+                        config.template_name = template.name;
+                        var sender = findById(config.sender_id, this.senders);
+                        config.sender_name = sender.from.name;
+                        config.sender_email = sender.from.email;
+                    }
+                    var payload = {
+                        configs: this.configs
+                    };
+                    axios.post(window.location.href, payload);
                 }
             }
         })
-
-
-        
-
-
-
-
-
-
 
 
 
