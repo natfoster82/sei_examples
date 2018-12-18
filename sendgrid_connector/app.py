@@ -51,13 +51,11 @@ def build_substitutions(delivery, to_dict):
     return substitutions
 
 
-def build_to(to_template, examinee_info):
-    name_map = to_template['name']
+def build_to(name_map, email_map, examinee_info):
     name = str(name_map)
     for key in examinee_info:
         key_code = '[{0}]'.format(key)
         name = name.replace(key_code, examinee_info[key])
-    email_map = to_template['email']
     email = str(email_map)
     for key in examinee_info:
         key_code = '[{0}]'.format(key)
@@ -131,14 +129,14 @@ def events():
         sg_headers = {'Authorization': 'Bearer {0}'.format(api_key)}
         for config in configs:
             if config['event'] == event:
-                to_dict = build_to(config['to_template'], examinee_info)
+                to_dict = build_to(config['name'], config['email'], examinee_info)
+                from_dict = {'name': config.get('sender_name'), 'email': config.get('sender_email')}
                 sg_payload = {
-                    'from': config['from'],
+                    'from': from_dict,
                     'template_id': config['template_id'],
                     'personalizations': {
                         'to': to_dict,
                         'substitutions': build_substitutions(delivery_json, to_dict)
-
                     }
                 }
                 requests.post(sg_url, json=sg_payload, headers=sg_headers)
@@ -155,7 +153,8 @@ def delivery_widget():
         decoded = jwt.decode(token, integration_info['secret'], algorithms=['HS256'])
     except jwt.exceptions.InvalidTokenError:
         abort(403)
-    return render_template('delivery_widget.html', exam_id=exam_id, delivery_id=delivery_id, token=token)
+    configs = integration_info.get('configs', [])
+    return render_template('delivery_widget.html', exam_id=exam_id, delivery_id=delivery_id, token=token, configs=configs)
 
 
 @app.route('/switch')

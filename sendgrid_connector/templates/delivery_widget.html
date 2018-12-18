@@ -47,7 +47,7 @@
         border-radius: 3px;
         text-transform: uppercase;
     }
-    #submit_btn {
+    .submit_btn {
         float:right;
         margin-top:0;
     }
@@ -87,10 +87,14 @@
         <img src="{{ url_for('static', filename='logo-sendgrid.png') }}" width="90" />
         <h1>SEI Data to SendGrid</h1>
         <p>Manually send out an emails for this delivery:</p>
-        <div class="connector">
-            <h4><button id="submit_btn" onclick="sendEmail()">Send email</button>Connector Name</h4>
-            <p>Description of the connector.</p>
-        </div>
+        {% for config in configs %}
+            <div class="connector">
+                <h4><button class="submit_btn" onclick="sendEmail('{{ config['event'] }}')">Send email</button></h4>
+                <p>{{ config['event'] }}</p>
+                <p>{{ config['sender_name'] }} - {{ config['sender_email'] }}</p>
+                <p>{{ config['template_name'] }}</p>
+            </div>
+        {% endfor %}
     </section>
     <script>
         function sendEmail() {
