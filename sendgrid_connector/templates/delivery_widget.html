@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>SEI Result Connector Delivery Widget</title>
+    <title>SEI Data to SendGrid Widget</title>
 </head>
 <style>
     html, body {
@@ -33,21 +33,42 @@
         margin-left: -75px;
         margin-top: 16px;
     }
+    #submit_btn {
+        float:right;
+        margin-top:0;
+    }
+    .connector {
+        background: #fff;
+        padding: 0 15px;
+        border-radius: 10px;
+        overflow:auto;
+        margin-bottom: 15px;
+    }
+    .connector h4 {
+        margin-bottom:0;
+    }
 
 </style>
 <body>
     <section>
-        <img src="{{ url_for('static', filename='logo_accredible.png') }}" width="54" height="54"/>
-        <h1>SEI Delivery Results to Accredible</h1>
-        <p>Did this result not post to Accredible?</p>
-        <button id="submit_btn" onclick="postDelivery()">Try again manually</button>
+        <img src="{{ url_for('static', filename='logo-sendgrid.png') }}" width="54" height="54"/>
+        <h1>SEI Data to SendGrid</h1>
+        <p>Manually send out an emails for this delivery:</p>
+        <div class="connector">
+            <h4><button id="submit_btn" onclick="postDelivery()">Send</button>Connector Name</h4>
+            <p>Description of the connector.</p>
+        </div>
+        <div class="connector">
+            <h4><button id="submit_btn" onclick="postDelivery()">Send</button>Connector Name</h4>
+            <p>Description of the connector.</p>
+        </div>
     </section>
     <script>
         function postDelivery() {
             var btn = document.getElementById('submit_btn');
             btn.disabled = true;
             btn.innerText = 'Sending request';
-            var url = {{ url_for('delivery_completed')|tojson }};
+            var url = {{ url_for('events')|tojson }};
             var payload = {
                 exam_id: {{ exam_id|tojson }},
                 delivery_id: {{ delivery_id|tojson }},
