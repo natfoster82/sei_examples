@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Configure</title>
+    <title>SEI SendGrid Connector Configuration </title>
     <style scoped>
         html, body {
             font-family: Arial, Helvetica, sans-serif;
@@ -23,11 +23,72 @@
             margin: 30px auto;
             background: #eee;
             border-radius: 10px;
-            padding: 10px 50px 30px 140px;
+            padding: 10px 30px 30px 140px;
             box-sizing: border-box;
             overflow: auto;
-
-            }
+        }
+        a {
+            color: #be1515;
+        }
+        img {
+            float:left;
+            margin-left: -110px;
+            margin-top: 0px;
+        }
+        ul {
+            list-style: none;
+            padding:0;
+            margin-top:0;
+            width: 100%;
+            display:block;
+        }
+        li {
+            font-size: .85em;
+            padding: 3px 0;
+            border-bottom: 1px dotted #ccc;
+        }
+        fieldset {
+            border: 2px solid #000;
+            background: #fff;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        select {
+            height: 30px;
+            width: 100%;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        label {
+            display:block;
+            width: 100%;
+        }
+        input[type="text"] {
+            padding: 3px 8px;
+            min-height: 20px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            height: 20px;
+            width: 95%;
+            margin-top: 5px;
+        }
+        .row {
+            display:flex;
+            flex-direction: row;
+        }
+        .leftCol {
+            flex:2;
+            margin-right: 15px;
+        }
+        .rightCol {
+            flex:1;
+            overflow-y:scroll;
+            background: #ddd;
+            padding: 15px;
+            border: 1px solid #ccc;
+        }
         .button {
             border: none;
             text-decoration:none;
@@ -49,132 +110,18 @@
             text-transform: uppercase;
             margin-right: 15px;
         }
-        a {
-            color: #be1515;
-        }
-        img {
-            float:left;
-            margin-left: -110px;
-            margin-top: 0px;
-        }
-        select {
-            height: 30px;
-            width: 100%;
-            margin-top: 5px;
-            margin-bottom: 15px;
-            font-size: 14px;
-        }
-        input[type="text"] {
-            padding: 5px;
-            min-height: 20px;
-            margin-bottom: 15px;
-            font-size: 14px;
-            height: 20px;
-        }
-        .mapping label, .mapping input[type="text"], .mapping select {
-            flex: 1;
-            margin-right: 10px;
-            line-height: 30px;
-            margin-bottom:0;
-        }
-        .mapping .leftCol input[type="text"] {
-            margin-bottom:3px;
-        }
-        ul {
-            list-style: none;
-            padding:0 5px;
-            margin-top:0;
-            width: 100%;
-            display:block;
-        }
-        li {
-            font-size: .85em;
-            padding: 3px;
-            border-bottom: 1px dotted #ddd;
-        }
-        fieldset {
-            border: 2px solid #000;
+        .button3 {
+            border: none;
+            text-decoration:none;
             background: #fff;
-            padding: 20px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-        }
-        .row {
-            display:flex;
-            flex-direction: row;
-        }
-        
-        .leftCol, .rightCol {
-            flex:1;
-            padding: 15px;
-            max-height: 300px;
-            overflow-y: scroll;
-            border: 1px solid #ccc;
-            background: #fff;
-            margin-right: 10px;
-        }
-        .mapping ul {
-            box-sizing: border-box;
-        }
-        .mapping .leftCol li {
-            border-bottom: 1px dotted #ddd;
-            display:block;
-            padding-bottom: 3px;
-            overflow: auto;
+            padding: 3px 15px;
+            color: #000;
+            font-size: 11px;
+            border-radius: 3px;
+            text-transform: uppercase;
         }
         .floatRight {
             float:right;
-        }
-        .mapping h4 {
-            margin-top: 0;
-        }
-
-
-        .tooltip {
-            position: relative;
-            border-bottom: 1px dotted black;
-            float: right;
-            background: #000;
-            color: #fff;
-            padding: 3px 7px 2px;
-            border-radius: 50px;
-            font-size: 12px;
-            margin-bottom: 4px;
-            margin-top: -4px;
-        }
-        .tooltip a {
-            color: #fff;
-        }
-        .tooltip .tooltiptext {
-            visibility: hidden;
-            width: 320px;
-            background-color: black;
-            color: #fff;
-            border-radius: 6px;
-            position: absolute;
-            z-index: 1;
-        }
-        .tooltip .tooltiptext {
-            width: 270px;
-            top: 100%;
-            left: 50%;
-            margin-left: -260px;
-            padding: 6px 10px 6px;
-            font-size: 13px;
-            margin-top:8px;
-        }
-        .tooltip .tooltiptext::after {
-            content: " ";
-            position: absolute;
-            bottom: 100%;
-            left: 90%;
-            margin-left: -5px;
-            border-width: 5px;
-            border-style: solid;
-            border-color: transparent transparent black transparent;
-        }
-        .tooltip:hover .tooltiptext {
-            visibility: visible;
         }
     </style>
 </head>
@@ -183,72 +130,67 @@
         <div id="app">
             <section>
                 <form>
-                    <img src="/static/logo-sendgrid.png" alt="SendGrid Logo" width="90"/>
-                    <h1>SEI Data to SendGrid</h1>
-                    <fieldset v-for="i in email">
-                        <h2>Email Connector 1 <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Delete</button></h2>
-                        <div class="row">
-                            <div class="leftCol">
+                    <img  v-bind:src="logo" alt="SendGrid Logo" width="90"/>
+                    <h1><button v-on:click="warning" class="button3 floatRight">Reset the API Key</button>
+                        SEI Data to SendGrid</h1>
+                    <div class="row">
+                        <div class="leftCol">
+                            <fieldset>
+                                <div>
+                                    <label for='connectorName'>Name for the email connector:</label>
+                                    <input type="text" name="connectorName" value="Examinee Score Report"/>
+                                </div>
                                 <div>
                                     <label for='event'>Choose an event that triggers an email:</label>
                                     <select name="event">
-                                        <option v-for="i in events">{{ i.event }}</option>
+                                        <option value="delivery_created">Delivery created</option>
+                                        <option value="delivery_created">Delivery completed</option>
                                     </select>
                                 </div>
                                 <div>
                                     <label for='sendGridTemplate'>Select the SendGrid template:</label>
                                     <select name="sendGridTemplate">
-                                        <option v-for="i in templates">{{ i.template }}</option>
+                                        <option v-for="template in templates">{{ template.name }}</option>
                                     </select>
+                                </div>
+                                <div>
+                                    <label for='sendGridSender'>Select a SendGrid sender for this email:</label>
+                                    <select name="sendGridSender">
+                                        <option v-for="sender in senders">{{ sender.nickname }}</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for='recipientName'>Select the recipient name field:</label>
+                                    <select name="recipientName">
+                                        <option v-for="tag in schema">{{ tag.key }}</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for='recipientEmail'>Select the recipient email field:</label>
+                                    <select name="sendGridSender">
+                                        <option v-for="tag in schema">{{ tag.key }}</option>
+                                    </select>
+                                </div>
+                                <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Delete this connector</button>
+                            </fieldset>                 
+                            <div>
+                                <button class="button2">Add an email connector</button>
+                                <input type="submit" value="Save settings" class="button floatRight">
+                            </div>
+                        </div>
+                        <div class="rightCol">
+                            <div class="row mapping">
+                                <div class="leftCol">
+                                    <h3>You can use these tags in your SendGrid Templates:</h3>
+                                    <h5>Examinee Schema:</h5>
+                                    <ul>
+                                        <li v-for="tag in schema">[% {{ tag.key }} %]</li>
+                                    </ul>
                                 </div>
                             </div>
                         </div>
-                    </fieldset>
+                    </div>
                 </form>
-                <br>
-                <div>
-                    <button class="button2">Add Email Connector</button>
-                    <input type="submit" value="Save settings" class="button floatRight">
-                </div>
-                <br><br>
-                
-                <div class="row mapping">
-                    <div class="leftCol">
-                        <h3>Tags you can use in your SendGrid templates:</h3>
-                        <ul>
-                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button></li>
-                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button></li>
-                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button></li>
-                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button></li>
-                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button></li>
-                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button></li>
-                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button></li>
-                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button></li>  <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button></li>
-                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button></li>
-                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button></li>
-                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button></li>
-                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button></li>
-                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button></li>
-                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button></li>
-                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button></li>
-                        </ul>
-                    </div>
-                    <div class="rightCol">
-                        <h3>Create your own tags:</h3>
-                            <label>Create a tag:</label>
-                            [% <input name="name" type="text"/> %]
-                            <button>Save</button>
-                            <hr>
-                            <h3>My Tags:</h3>
-                        <ul>
-                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button><button type="button" class="copy_btn floatRight">Delete</button></li>
-                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button><button type="button" class="copy_btn floatRight">Delete</button></li>
-                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button><button type="button" class="copy_btn floatRight">Delete</button></li>
-                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button><button type="button" class="copy_btn floatRight">Delete</button></li>
-                            <li>[% Tag %] <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Copy</button><button type="button" class="copy_btn floatRight">Delete</button></li>
-                        </ul>
-                    </div>
-                </div>
             </section>
         </div>
     {% endraw %}
@@ -260,11 +202,24 @@
             templates: {{ templates|tojson }},
             schema: {{ schema|tojson }}
         }
+        var app = new Vue({
+            el: '#app',
+            data: {
+                templates: GLOBALS.templates,
+                senders: GLOBALS.senders,
+                schema: GLOBALS.schema,
+                logo: '{{ url_for('static', filename='logo-sendgrid.png') }}'
+            },     
+            methods: {
+                warning: function (event) {
+                    alert('Warning - Resetting the API key will remove all connectors.')
+                }
+            }
+        })
     </script>
     <script type="text/javascript">
         new ClipboardJS('.copy_btn');
     </script>
-    <script type="text/javascript" src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>
 

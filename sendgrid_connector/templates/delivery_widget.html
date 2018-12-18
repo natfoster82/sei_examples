@@ -55,19 +55,15 @@
         <h1>SEI Data to SendGrid</h1>
         <p>Manually send out an emails for this delivery:</p>
         <div class="connector">
-            <h4><button id="submit_btn" onclick="postDelivery()">Send</button>Connector Name</h4>
-            <p>Description of the connector.</p>
-        </div>
-        <div class="connector">
-            <h4><button id="submit_btn" onclick="postDelivery()">Send</button>Connector Name</h4>
+            <h4><button id="submit_btn" onclick="sendEmail()">Send email</button>Connector Name</h4>
             <p>Description of the connector.</p>
         </div>
     </section>
     <script>
-        function postDelivery() {
+        function sendEmail() {
             var btn = document.getElementById('submit_btn');
             btn.disabled = true;
-            btn.innerText = 'Sending request';
+            btn.innerText = 'Sending email';
             var url = {{ url_for('events')|tojson }};
             var payload = {
                 exam_id: {{ exam_id|tojson }},
