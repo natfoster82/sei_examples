@@ -89,6 +89,17 @@
             padding: 15px;
             border: 1px solid #ccc;
         }
+        .mapping .leftCol, .mapping .rightCol {
+            flex:1;
+            overflow-y:scroll;
+            padding: 15px;
+            background: #fff;
+            margin-bottom: 15px;
+        }
+        .mapping .leftCol {
+            overflow-y:visible;
+            padding:0;
+        }
         .button {
             border: none;
             text-decoration:none;
@@ -123,6 +134,50 @@
         .floatRight {
             float:right;
         }
+        .tooltip {
+            position: relative;
+            border-bottom: 1px dotted black;
+            float: right;
+            background: #000;
+            color: #fff;
+            padding: 3px 7px 2px;
+            border-radius: 50px;
+            font-size: 12px;
+            margin-bottom: 4px;
+            margin-top: -4px;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 320px;
+            background-color: black;
+            color: #fff;
+            border-radius: 6px;
+            position: absolute;
+            z-index: 1;
+        }
+        .tooltip .tooltiptext {
+            width: 270px;
+            top: 100%;
+            left: 50%;
+            margin-left: -260px;
+            padding: 6px 10px 6px;
+            font-size: 13px;
+            margin-top:8px;
+        }
+        .tooltip .tooltiptext::after {
+            content: " ";
+            position: absolute;
+            bottom: 100%;
+            left: 90%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: transparent transparent black transparent;
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+        }
+
         @media only screen and (max-width: 800px) {
             section {
                 padding: 30px;
@@ -140,11 +195,6 @@
                 margin-bottom: 20px;
             }
         }
-
-
-
-
-
     </style>
 </head>
 <body>
@@ -152,16 +202,12 @@
         <div id="app">
             <section>
                 <form>
-                    <img  v-bind:src="logo" alt="SendGrid Logo" width="90"/>
-                    <h1><button v-on:click="warning" class="button3 floatRight">Reset the API Key</button>
+                    <img src="/static/logo-sendgrid.png" alt="SendGrid Logo" width="90"/>
+                    <h1><button class="button3 floatRight">Reset the API Key</button>
                         SEI Data to SendGrid</h1>
                     <div class="row">
                         <div class="leftCol">
-                            <fieldset>
-                                <div>
-                                    <label for='connectorName'>Name for the email connector:</label>
-                                    <input type="text" name="connectorName" value="Examinee Score Report"/>
-                                </div>
+                            <fieldset v-for="config in configs">
                                 <div>
                                     <label for='event'>Choose an event that triggers an email:</label>
                                     <select name="event">
@@ -181,27 +227,38 @@
                                         <option v-for="sender in senders">{{ sender.nickname }}</option>
                                     </select>
                                 </div>
-                                <div>
-                                    <label for='recipientName'>Select the recipient name field:</label>
-                                    <select name="recipientName">
-                                        <option v-for="tag in schema">{{ tag.key }}</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label for='recipientEmail'>Select the recipient email field:</label>
-                                    <select name="sendGridSender">
-                                        <option v-for="tag in schema">{{ tag.key }}</option>
-                                    </select>
+                                <div class="row mapping">
+                                    <div class="leftCol">
+                                        <h5>Map SendGrid name and email fields to the SEI examinee Schema:</h5>
+                                        <div>
+                                            <label for='recipientName'>Add recipient name field:
+                                                <div class="tooltip">?<span class="tooltiptext">Example: [% First Name %] [% Last Name %]</span></div>
+                                                </label>
+                                            <input type="text" name="recipientName">
+                                        </div>
+                                        <div>
+                                            <label for='recipientEmail'>Add recipient email field:
+                                                    <div class="tooltip">?<span class="tooltiptext">Example: [% Email %]</span></div>
+                                            </label>
+                                            <input type="text" name recipientEmail>
+                                        </div>
+                                    </div>
+                                    <div class="rightCol">
+                                        <h5>Fields in the SEI Examinee Schema:</h5>
+                                        <ul>
+                                            <li v-for="tag in schema">[% {{ tag.key }} %]</li>
+                                        </ul>
+                                    </div>
                                 </div>
                                 <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Delete this connector</button>
                             </fieldset>                 
                             <div>
-                                <button class="button2">Add an email connector</button>
-                                <input type="submit" value="Save settings" class="button floatRight">
+                                <button class="button2" type="button" v-on:click="addConfig">Add an email connector</button>
+                                <button type="button" class="button floatRight">Save settings</button>
                             </div>
                         </div>
                         <div class="rightCol">
-                            <div class="row mapping">
+                            <div class="row">
                                 <div class="leftCol">
                                     <h3>You can use these tags in your SendGrid Templates:</h3>
                                     <h5>Examinee Schema:</h5>
@@ -222,7 +279,8 @@
         var GLOBALS = {
             senders: {{ senders|tojson }},
             templates: {{ templates|tojson }},
-            schema: {{ schema|tojson }}
+            schema: {{ schema|tojson }},
+            configs: {{ configs|tojson }}
         }
         var app = new Vue({
             el: '#app',
@@ -230,16 +288,19 @@
                 templates: GLOBALS.templates,
                 senders: GLOBALS.senders,
                 schema: GLOBALS.schema,
-                logo: '{{ url_for('static', filename='logo-sendgrid.png') }}'
-            },     
+                configs: GLOBALS.configs
+            },
             methods: {
-                warning: function (event) {
-                    alert('Warning - Resetting the API key will remove all connectors.')
+                addConfig: function() {
+                    this.configs.push({});
                 }
             }
         })
 
-        var sendGridConnector = [];
+
+        
+
+
 
 
 

@@ -225,8 +225,10 @@ def configure():
     templates = templates_json['templates']
     senders = senders_json
 
+    configs = integration_info.get('configs', [])
+
     return render_template('configure.html', exam_id=exam_id, token=token, schema=schema,
-                           templates=templates, senders=senders)
+                           templates=templates, senders=senders, configs=configs)
 
 
 @app.route('/configure', methods=['POST'])
