@@ -101,6 +101,7 @@
             padding:0;
         }
         .button {
+            cursor: pointer;
             border: none;
             text-decoration:none;
             background: #be1515;
@@ -111,6 +112,7 @@
             text-transform: uppercase;
         }
         .button2 {
+            cursor: pointer;
             border: none;
             text-decoration:none;
             background: #000;
@@ -122,6 +124,7 @@
             margin-right: 15px;
         }
         .button3 {
+            cursor: pointer;
             border: none;
             text-decoration:none;
             background: #fff;
@@ -260,6 +263,7 @@
                             <div>
                                 <button class="button2" type="button" v-on:click="addConfig">Add an email connector</button>
                                 <button type="button" class="button floatRight" v-on:click="save">Save settings</button>
+                                
                             </div>
                         </div>
                         <div class="rightCol">
@@ -308,6 +312,7 @@
             methods: {
                 addConfig: function() {
                     this.configs.push({});
+
                 },
                 save: function() {
                     for (var i = 0; i < this.configs.length; i++) {
@@ -322,6 +327,7 @@
                         configs: this.configs
                     };
                     axios.post(window.location.href, payload).then(function(){});
+
                 }
             }
         })
