@@ -44,9 +44,28 @@ def get_integration_info(exam_id):
 
 
 def build_template_data(delivery, to_dict):
+    try:
+        score_percent = delivery['points_earned'] / delivery['points_available']
+    except Exception:
+        score_percent = 0.0
+    score_report_url = app.config['SEI_URL_BASE'] + '/score/' + delivery['score_token']
     data = {
         'name': to_dict['name'],
         'email': to_dict['email'],
+        'examinee_info': delivery['examinee']['info'],
+        'exam_name': delivery['exam']['name'],
+        'score': delivery['score'],
+        'score_scale': delivery['score_scale'],
+        'points_earned': delivery['points_earned'],
+        'points_available': delivery['points_available'],
+        'score_percent': score_percent,
+        'passed': delivery['passed'],
+        'cutscore': delivery['cutscore'],
+        'content_area_breakdown': delivery['content_area_breakdown'],
+        'status': delivery['status'],
+        'type': delivery['type'],
+        'duration': delivery['used_seconds'],
+        'score_report_url': score_report_url
     }
     return data
 
@@ -116,7 +135,7 @@ def events():
     # get full delivery object from SEI
     # TODO: only do this for delivery type events
     delivery_id = body['delivery_id']
-    delivery_url = '{0}/api/exams/{1}/deliveries/{2}?include=exam'.format(app.config['SEI_URL_BASE'], exam_id, delivery_id)
+    delivery_url = '{0}/api/exams/{1}/deliveries/{2}?include=exam,content_area_breakdown,score_token'.format(app.config['SEI_URL_BASE'], exam_id, delivery_id)
     delivery_headers = {'Authorization': 'Bearer {0}'.format(integration_info['token'])}
     delivery_response = requests.get(delivery_url, headers=delivery_headers)
     delivery_json = delivery_response.json()
