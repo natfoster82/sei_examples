@@ -203,7 +203,7 @@
             <section>
                 <form>
                     <img src="/static/logo-sendgrid.png" alt="SendGrid Logo" width="90"/>
-                    <h1><button class="button3 floatRight">Reset the API Key</button>
+                    <h1><a class="button3 floatRight" v-bind:href="apiKeyLink">Reset the API Key</a>
                         SEI Data to SendGrid</h1>
                     <div class="row">
                         <div class="leftCol">
@@ -213,6 +213,8 @@
                                     <select name="event" v-model="config.event">
                                         <option value=""></option>
                                         <option value="delivery_created">Delivery created</option>
+                                        <option value="delivery_started">Delivery started</option>
+                                        <option value="delivery_suspended">Delivery suspended</option>
                                         <option value="delivery_completed">Delivery completed</option>
                                     </select>
                                 </div>
@@ -300,7 +302,8 @@
                 templates: GLOBALS.templates,
                 senders: GLOBALS.senders,
                 schema: GLOBALS.schema,
-                configs: GLOBALS.configs
+                configs: GLOBALS.configs,
+                apiKeyLink: '/api_key' + window.location.search
             },
             methods: {
                 addConfig: function() {
