@@ -87,18 +87,21 @@
         <img src="{{ url_for('static', filename='logo-sendgrid.png') }}" width="90" />
         <h1>SEI Data to SendGrid</h1>
         <p>Manually send out emails for this delivery:</p>
-        {% for config in configs %}
-            <div class="connector">
-                <h4><button id="submit_{{ loop.index0 }}" class="submit_btn" onclick="sendEmail('{{ config['event'] }}', {{ loop.index0 }})">Send email</button></h4>
-                <p>{{ config['event'] }}</p>
-                <p>{{ config['template_name'] }}</p>
-                <p>{{ config['sender_name'] }} - {{ config['sender_email'] }}</p>
-            </div>
+        {% for event in configs_by_event %}
+            {% with configs = configs_by_event[event] %}
+                <div class="connector">
+                    <h4><button id="submit_{{ event }}" class="submit_btn" onclick="sendEmail('{{ event }}')">Send email</button>{{ event|replace('_', ' ')|title }}</h4>
+                    {% for config in configs %}
+                        <p>{{ config['template_name'] }}</p>
+                        <p>{{ config['sender_name'] }} - {{ config['sender_email'] }}</p>
+                    {% endfor %}
+                </div>
+            {% endwith %}
         {% endfor %}
     </section>
     <script>
-        function sendEmail(eventName, configIdx) {
-            var btn = document.getElementById(`submit_${configIdx}`);
+        function sendEmail(eventName) {
+            var btn = document.getElementById(`submit_${eventName}`);
             btn.disabled = true;
             btn.innerText = 'Sending email';
             var url = {{ url_for('events')|tojson }};

@@ -267,8 +267,8 @@
                                 <div class="leftCol">
                                     <h3>You can use these tags in your SendGrid Templates:</h3>
                                     <ul>
-                                        <li>[%name%]</li>
-                                        <li>[%email%]</li>
+                                        <li v-pre>{{name}}</li>
+                                        <li v-pre>{{email}}</li>
                                     </ul>
                                 </div>
                             </div>
@@ -321,7 +321,7 @@
                     var payload = {
                         configs: this.configs
                     };
-                    axios.post(window.location.href, payload);
+                    axios.post(window.location.href, payload).then(function(){});
                 }
             }
         })

@@ -154,7 +154,13 @@ def delivery_widget():
     except jwt.exceptions.InvalidTokenError:
         abort(403)
     configs = integration_info.get('configs', [])
-    return render_template('delivery_widget.html', exam_id=exam_id, delivery_id=delivery_id, token=token, configs=configs)
+    configs_by_event = {}
+    for config in configs:
+        try:
+            configs_by_event[config['event']].append(config)
+        except KeyError:
+            configs_by_event[config['event']] = [config]
+    return render_template('delivery_widget.html', exam_id=exam_id, delivery_id=delivery_id, token=token, configs_by_event=configs_by_event)
 
 
 @app.route('/switch')
