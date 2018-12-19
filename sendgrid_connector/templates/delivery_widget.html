@@ -64,6 +64,10 @@
     .connector h4 {
         margin-bottom:0;
     }
+    .borderTop {
+        border-top: 1px dotted #eee;
+        margin-top: 10px;
+    }
     @media only screen and (max-width: 800px) {
         section {
             padding: 30px;
@@ -92,8 +96,10 @@
                 <div class="connector">
                     <h4><button id="submit_{{ event }}" class="submit_btn" onclick="sendEmail('{{ event }}')">Send email</button>{{ event|replace('_', ' ')|title }}</h4>
                     {% for config in configs %}
-                        <p>{{ config['template_name'] }}</p>
-                        <p>{{ config['sender_name'] }} - {{ config['sender_email'] }}</p>
+                        <div class="borderTop">
+                            <p>{{ config['template_name'] }}</p>
+                            <p>{{ config['sender_name'] }} - {{ config['sender_email'] }}</p>
+                        </div>
                     {% endfor %}
                 </div>
             {% endwith %}
