@@ -46,7 +46,8 @@ def get_integration_info(exam_id):
 def build_substitutions(delivery, to_dict):
     substitutions = {
         '[%name%]': to_dict['name'],
-        '[%email%]': to_dict['email']
+        '[%email%]': to_dict['email'],
+
     }
     return substitutions
 

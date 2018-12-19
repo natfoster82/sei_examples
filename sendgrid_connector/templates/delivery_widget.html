@@ -97,7 +97,7 @@
         {% endfor %}
     </section>
     <script>
-        function sendEmail() {
+        function sendEmail(eventName) {
             var btn = document.getElementById('submit_btn');
             btn.disabled = true;
             btn.innerText = 'Sending email';
@@ -105,7 +105,7 @@
             var payload = {
                 exam_id: {{ exam_id|tojson }},
                 delivery_id: {{ delivery_id|tojson }},
-                event: 'delivery_completed'
+                event: eventName
             };
             fetch(url, {
                 method: 'POST',
