@@ -43,13 +43,12 @@ def get_integration_info(exam_id):
     return data
 
 
-def build_substitutions(delivery, to_dict):
-    substitutions = {
-        '[%name%]': to_dict['name'],
-        '[%email%]': to_dict['email'],
-
+def build_template_data(delivery, to_dict):
+    data = {
+        'name': to_dict['name'],
+        'email': to_dict['email'],
     }
-    return substitutions
+    return data
 
 
 def build_to(name_map, email_map, examinee_info):
@@ -135,10 +134,10 @@ def events():
                 sg_payload = {
                     'from': from_dict,
                     'template_id': config['template_id'],
-                    'personalizations': {
-                        'to': to_dict,
-                        'substitutions': build_substitutions(delivery_json, to_dict)
-                    }
+                    'personalizations': [{
+                        'to': [to_dict],
+                        'dynamic_template_data': build_template_data(delivery_json, to_dict)
+                    }]
                 }
                 requests.post(sg_url, json=sg_payload, headers=sg_headers)
     return jsonify()
@@ -209,7 +208,7 @@ def configure():
     sg_base = 'https://api.sendgrid.com/v3'
     sg_headers = {'Authorization': 'Bearer {0}'.format(integration_info['api_key'])}
 
-    templates_url = sg_base + '/templates?generations=dynamic,legacy'
+    templates_url = sg_base + '/templates?generations=dynamic'
     request_dicts.append({'url': templates_url, 'headers': sg_headers})
 
     senders_url = sg_base + '/senders'
