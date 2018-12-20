@@ -111,6 +111,10 @@
             border-radius: 3px;
             text-transform: uppercase;
         }
+        .button:disabled {
+            cursor: default;
+            background: #cccccc;
+        }
         .button2 {
             cursor: pointer;
             border: none;
@@ -262,8 +266,8 @@
                             </fieldset>                 
                             <div>
                                 <button class="button2" type="button" v-on:click="addConfig">Add an email connector</button>
-                                <button type="button" class="button floatRight" v-on:click="save">Save settings</button>
-                                
+                                <button v-if="!saving" type="button" class="button floatRight" v-on:click="save">Save settings</button>
+                                <button v-if="saving" type="button" class="button floatRight" disabled>Saving settings...</button>
                             </div>
                         </div>
                         <div class="rightCol">
@@ -322,7 +326,8 @@
                 senders: GLOBALS.senders,
                 schema: GLOBALS.schema,
                 configs: GLOBALS.configs,
-                apiKeyLink: '/api_key' + window.location.search
+                apiKeyLink: '/api_key' + window.location.search,
+                saving: false
             },
             methods: {
                 addConfig: function() {
@@ -330,6 +335,7 @@
 
                 },
                 save: function() {
+                    this.saving = true;
                     for (var i = 0; i < this.configs.length; i++) {
                         var config = this.configs[i];
                         var template = findById(config.template_id, this.templates);
@@ -341,14 +347,14 @@
                     var payload = {
                         configs: this.configs
                     };
-                    axios.post(window.location.href, payload).then(function(){});
-
+                    axios.post(window.location.href, payload).then(function(){
+                        setTimeout(function() {
+                            this.saving = false;
+                        }.bind(this), 1000);
+                    }.bind(this));
                 }
             }
         })
-
-
-
     </script>
     <script type="text/javascript">
         new ClipboardJS('.copy_btn');
