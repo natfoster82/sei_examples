@@ -94,11 +94,11 @@
         {% for event in configs_by_event %}
             {% with configs = configs_by_event[event] %}
                 <div class="connector">
-                    <h4><button id="submit_{{ event }}" class="submit_btn" onclick="sendEmail('{{ event }}')">Send email</button>{{ event|replace('_', ' ')|title }}</h4>
+                    <h4><button id="submit_{{ event }}" class="submit_btn" onclick="sendEmail('{{ event }}')">Trigger Email Event</button>{{ event|replace('_', ' ')|title }}</h4>
                     {% for config in configs %}
                         <div class="borderTop">
-                            <p>{{ config['template_name'] }}</p>
-                            <p>{{ config['sender_name'] }} - {{ config['sender_email'] }}</p>
+                            <p>SendGrid template: {{ config['template_name'] }}</p>
+                            <p>Email from: {{ config['sender_name'] }} - {{ config['sender_email'] }}</p>
                         </div>
                     {% endfor %}
                 </div>

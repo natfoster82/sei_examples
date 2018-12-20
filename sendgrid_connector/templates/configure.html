@@ -241,16 +241,17 @@
                                 </div>
                                 <div class="row mapping">
                                     <div class="leftCol">
-                                        <h5>Map SendGrid name and email fields to the SEI examinee Schema:</h5>
+                                        <h4>Enter the recipient name and email:</h4>
+                                        <h5>Enter fields from the SEI examinee schema to send these emails to the examinees.</h5>
                                         <div>
                                             <label for='recipientName'>Add recipient name field:
-                                                <div class="tooltip">?<span class="tooltiptext">Example: [First Name] [Last Name]</span></div>
+                                                <div class="tooltip">?<span class="tooltiptext">Example of SEI examinee schema: [First Name] [Last Name]</span></div>
                                                 </label>
                                             <input type="text"  v-model="config.name">
                                         </div>
                                         <div>
                                             <label for='recipientEmail'>Add recipient email field:
-                                                    <div class="tooltip">?<span class="tooltiptext">Example: [Email]</span></div>
+                                                    <div class="tooltip">?<span class="tooltiptext">Example of SEI examinee schema: [Email]</span></div>
                                             </label>
                                             <input type="text" v-model="config.email">
                                         </div>
