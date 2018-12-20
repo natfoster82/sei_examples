@@ -116,7 +116,7 @@ def sei_redirect():
     exp_time = (now + timedelta(seconds=exp_seconds))
     payload = {'iss': 'SEI', 'sub': exam_id, 'iat': now, 'exp': exp_time}
     token = jwt.encode(payload, secret, algorithm='HS256').decode()
-    return redirect(url_for('configure', jwt=token, exam_id=exam_id))
+    return redirect(url_for('switch', jwt=token, exam_id=exam_id))
 
 
 @app.route('/events', methods=['POST'])
