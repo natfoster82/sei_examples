@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SEI Data to SendGrid Widget</title>
+</head>
+<style scoped>
+    html, body {
+        font-family: Arial, Helvetica, sans-serif;
+        background: #fff;
+    }
+    h2, h3, h4 {
+        color:#000;
+    }
+    h2, h3, h4, h5 {
+        margin-top:0;
+        margin-bottom: 10px;
+    }
+    h4 {
+        margin-bottom: 3px;
+    }
+    section {
+        width: 98%;
+        margin: 30px auto;
+        background: #eee;
+        border-radius: 10px;
+        padding: 10px 30px 30px 140px;
+        box-sizing: border-box;
+        overflow: auto;
+    }
+    a {
+        color: #be1515;
+    }
+    img {
+        float:left;
+        margin-left: -110px;
+        margin-top: 20px;
+    }
+    button {
+        border: none;
+        margin: 10px 0 0;
+        text-decoration:none;
+        background: #be1515;
+        padding: 3px 15px;
+        color: #fff;
+        font-size: 14px;
+        border-radius: 3px;
+        text-transform: uppercase;
+    }
+    .submit_btn {
+        float:right;
+        margin-top:0;
+    }
+    .connector {
+        background: #fff;
+        padding: 25px 25px 25px;
+        border-radius: 10px;
+        overflow:auto;
+        margin-bottom: 15px;
+    }
+    .connector p {
+        margin: 10px 0 10px;
+    }
+    .connector h4 {
+        margin-bottom:0;
+    }
+    .borderTop {
+        border-top: 1px dotted #eee;
+        margin-top: 10px;
+    }
+    @media only screen and (max-width: 800px) {
+        section {
+            padding: 30px;
+        }
+        img {
+            display: none;
+        }
+        .row {
+            flex-direction: column;
+        }
+        .leftCol, .rightCol {
+            width: 100%;
+            flex:1;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+        }
+    }
+</style>
+<body>
+    <section>
+        <img src="{{ url_for('static', filename='logo-sendgrid.png') }}" width="90" />
+        <h1>SEI Data to SendGrid</h1>
+        <p>Manually send out emails for this delivery:</p>
+        {% for event in configs_by_event %}
+            {% with configs = configs_by_event[event] %}
+                <div class="connector">
+                    <h4><button id="submit_{{ event }}" class="submit_btn" onclick="sendEmail('{{ event }}')">Trigger Email Event</button>{{ event|replace('_', ' ')|title }}</h4>
+                    {% for config in configs %}
+                        <div class="borderTop">
+                            <p>SendGrid template: {{ config['template_name'] }}</p>
+                            <p>Email from: {{ config['sender_name'] }} - {{ config['sender_email'] }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endwith %}
+        {% endfor %}
+    </section>
+    <script>
+        function sendEmail(eventName) {
+            var btn = document.getElementById(`submit_${eventName}`);
+            btn.disabled = true;
+            btn.innerText = 'Sending email';
+            var url = {{ url_for('events')|tojson }};
+            var payload = {
+                exam_id: {{ exam_id|tojson }},
+                delivery_id: {{ delivery_id|tojson }},
+                event: eventName
+            };
+            fetch(url, {
+                method: 'POST',
+                body: JSON.stringify(payload),
+                headers: new Headers({
+                    'Content-Type': 'application/json',
+                    Authorization: 'Bearer ' + {{ token|tojson }}
+                })
+            }).then(function(){
+                btn.innerText = 'Success'
+            }).catch(function(){
+                btn.innerText = 'Error'
+            })
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SEI SendGrid Connector Configuration </title>
+    <style scoped>
+        html, body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #fff;
+        }
+        h2, h3, h4 {
+            color:#000;
+        }
+        h2, h3, h4, h5 {
+            margin-top:0;
+            margin-bottom: 10px;
+        }
+        h4 {
+            margin-bottom: 3px;
+        }
+        section {
+            width: 98%;
+            margin: 30px auto;
+            background: #eee;
+            border-radius: 10px;
+            padding: 10px 30px 30px 140px;
+            box-sizing: border-box;
+            overflow: auto;
+        }
+        a {
+            color: #be1515;
+        }
+        img {
+            float:left;
+            margin-left: -110px;
+            margin-top: 0px;
+        }
+        ul {
+            list-style: none;
+            padding:0;
+            margin-top:0;
+            width: 100%;
+            display:block;
+        }
+        li {
+            font-size: .85em;
+            padding: 3px 0;
+            border-bottom: 1px dotted #ccc;
+        }
+        fieldset {
+            border: 2px solid #000;
+            background: #fff;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        select {
+            height: 30px;
+            width: 100%;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        label {
+            display:block;
+            width: 100%;
+        }
+        input[type="text"] {
+            padding: 3px 8px;
+            min-height: 20px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            height: 20px;
+            width: 95%;
+            margin-top: 5px;
+        }
+        .row {
+            display:flex;
+            flex-direction: row;
+        }
+        .leftCol {
+            flex:2;
+            margin-right: 15px;
+        }
+        .rightCol {
+            flex:1;
+            overflow-y:scroll;
+            background: #ddd;
+            padding: 15px;
+            border: 1px solid #ccc;
+        }
+        .mapping .leftCol, .mapping .rightCol {
+            flex:1;
+            overflow-y:scroll;
+            padding: 15px;
+            background: #fff;
+            margin-bottom: 15px;
+        }
+        .mapping .leftCol {
+            overflow-y:visible;
+            padding:0;
+        }
+        .button {
+            cursor: pointer;
+            border: none;
+            text-decoration:none;
+            background: #be1515;
+            padding: 3px 15px;
+            color: #fff;
+            font-size: 14px;
+            border-radius: 3px;
+            text-transform: uppercase;
+        }
+        .button:disabled {
+            cursor: default;
+            background: #cccccc;
+        }
+        .button2 {
+            cursor: pointer;
+            border: none;
+            text-decoration:none;
+            background: #000;
+            padding: 3px 15px;
+            color: #fff;
+            font-size: 14px;
+            border-radius: 3px;
+            text-transform: uppercase;
+            margin-right: 15px;
+        }
+        .button3 {
+            cursor: pointer;
+            border: none;
+            text-decoration:none;
+            background: #fff;
+            padding: 3px 15px;
+            color: #000;
+            font-size: 11px;
+            border-radius: 3px;
+            text-transform: uppercase;
+        }
+        .floatRight {
+            float:right;
+        }
+        .tooltip {
+            position: relative;
+            border-bottom: 1px dotted black;
+            float: right;
+            background: #000;
+            color: #fff;
+            padding: 3px 7px 2px;
+            border-radius: 50px;
+            font-size: 12px;
+            margin-bottom: 4px;
+            margin-top: -4px;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 320px;
+            background-color: black;
+            color: #fff;
+            border-radius: 6px;
+            position: absolute;
+            z-index: 1;
+        }
+        .tooltip .tooltiptext {
+            width: 270px;
+            top: 100%;
+            left: 50%;
+            margin-left: -260px;
+            padding: 6px 10px 6px;
+            font-size: 13px;
+            margin-top:8px;
+        }
+        .tooltip .tooltiptext::after {
+            content: " ";
+            position: absolute;
+            bottom: 100%;
+            left: 90%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: transparent transparent black transparent;
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+        }
+
+        @media only screen and (max-width: 800px) {
+            section {
+                padding: 30px;
+            }
+            img {
+                display: none;
+            }
+            .row {
+                flex-direction: column;
+            }
+            .leftCol, .rightCol {
+                width: 100%;
+                flex:1;
+                box-sizing: border-box;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% raw %}
+        <div id="app">
+            <section>
+                <form>
+                    <img src="/static/logo-sendgrid.png" alt="SendGrid Logo" width="90"/>
+                    <h1><a class="button3 floatRight" v-bind:href="apiKeyLink">Reset the API Key</a>
+                        SEI Data to SendGrid</h1>
+                    <div class="row">
+                        <div class="leftCol">
+                            <fieldset v-for="config in configs">
+                                <div>
+                                    <label for='event'>Choose an event that triggers an email:</label>
+                                    <select name="event" v-model="config.event">
+                                        <option value=""></option>
+                                        <option value="delivery_created">Delivery created</option>
+                                        <option value="delivery_started">Delivery started</option>
+                                        <option value="delivery_suspended">Delivery suspended</option>
+                                        <option value="delivery_completed">Delivery completed</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for='sendGridTemplate'>Select the SendGrid template:</label>
+                                    <select name="sendGridTemplate" v-model="config.template_id">
+                                        <option value=""></option>
+                                        <option v-for="template in templates" v-bind:value="template.id">{{ template.name }}</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for='sendGridSender'>Select a SendGrid sender for this email:</label>
+                                    <select name="sendGridSender" v-model="config.sender_id">
+                                        <option value=""></option>
+                                        <option v-for="sender in senders" v-bind:value="sender.id">{{ sender.from.name }} - {{ sender.from.email}}</option>
+                                    </select>
+                                </div>
+                                <div class="row mapping">
+                                    <div class="leftCol">
+                                        <h4>Enter the recipient name and email:</h4>
+                                        <h5>Enter fields from the SEI examinee schema to send these emails to the examinees.</h5>
+                                        <div>
+                                            <label for='recipientName'>Add recipient name field:
+                                                <div class="tooltip">?<span class="tooltiptext">Example of SEI examinee schema: [First Name] [Last Name]</span></div>
+                                                </label>
+                                            <input type="text"  v-model="config.name">
+                                        </div>
+                                        <div>
+                                            <label for='recipientEmail'>Add recipient email field:
+                                                    <div class="tooltip">?<span class="tooltiptext">Example of SEI examinee schema: [Email]</span></div>
+                                            </label>
+                                            <input type="text" v-model="config.email">
+                                        </div>
+                                    </div>
+                                    <div class="rightCol">
+                                        <h5>Fields in the SEI Examinee Schema:</h5>
+                                        <ul>
+                                            <li v-for="tag in schema">[{{ tag.key }}]</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Delete this connector</button>
+                            </fieldset>                 
+                            <div>
+                                <button class="button2" type="button" v-on:click="addConfig">Add an email connector</button>
+                                <button v-if="!saving" type="button" class="button floatRight" v-on:click="save">Save settings</button>
+                                <button v-if="saving" type="button" class="button floatRight" disabled>Saving settings...</button>
+                            </div>
+                        </div>
+                        <div class="rightCol">
+                            <div class="row">
+                                <div class="leftCol">
+                                    <h3>You can use these tags in your SendGrid Templates:</h3>
+                                    <ul>
+                                        <li v-pre>name</li>
+                                        <li v-pre>email</li>
+                                        <li v-pre>examinee_info</li>
+                                        <li v-pre>exam_name</li>
+                                        <li v-pre>score</li>
+                                        <li v-pre>score_scale</li>
+                                        <li v-pre>points_earned</li>
+                                        <li v-pre>points_available</li>
+                                        <li v-pre>score_percent</li>
+                                        <li v-pre>passed</li>
+                                        <li v-pre>cutscore</li>
+                                        <li v-pre>content_area_breakdown</li>
+                                        <li v-pre>status</li>
+                                        <li v-pre>duration</li>
+                                        <li v-pre>score_report_url</li>
+
+
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </section>
+        </div>
+    {% endraw %}
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='clipboard.min.js') }}"></script>
+    <script>
+        var GLOBALS = {
+            senders: {{ senders|tojson }},
+            templates: {{ templates|tojson }},
+            schema: {{ schema|tojson }},
+            configs: {{ configs|tojson }}
+        }
+        function findById(id, array) {
+            for (var i = 0; i < array.length; i++) {
+                var obj = array[i];
+                if (obj.id === id) {
+                    return obj;
+                } 
+            }
+        }
+        var app = new Vue({
+            el: '#app',
+            data: {
+                templates: GLOBALS.templates,
+                senders: GLOBALS.senders,
+                schema: GLOBALS.schema,
+                configs: GLOBALS.configs,
+                apiKeyLink: '/api_key' + window.location.search,
+                saving: false
+            },
+            methods: {
+                addConfig: function() {
+                    this.configs.push({});
+
+                },
+                save: function() {
+                    this.saving = true;
+                    for (var i = 0; i < this.configs.length; i++) {
+                        var config = this.configs[i];
+                        var template = findById(config.template_id, this.templates);
+                        config.template_name = template.name;
+                        var sender = findById(config.sender_id, this.senders);
+                        config.sender_name = sender.from.name;
+                        config.sender_email = sender.from.email;
+                    }
+                    var payload = {
+                        configs: this.configs
+                    };
+                    axios.post(window.location.href, payload).then(function(){
+                        setTimeout(function() {
+                            this.saving = false;
+                        }.bind(this), 1000);
+                    }.bind(this));
+                }
+            }
+        })
+    </script>
+    <script type="text/javascript">
+        new ClipboardJS('.copy_btn');
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
