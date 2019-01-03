@@ -2,7 +2,7 @@ from json import loads, dumps
 
 import requests
 import jwt
-from flask import Flask, render_template, request, abort, jsonify
+from flask import Flask, render_template, request, abort, jsonify, Response
 from redis import StrictRedis
 from requests.auth import HTTPBasicAuth
 from werkzeug.contrib.fixers import ProxyFix
@@ -32,6 +32,13 @@ def get_integration_info(exam_id):
     data = resp.json()
     redis_store.set(data['exam_id'], dumps(data))
     return data
+
+
+def make_row(delivery):
+    values = [
+        '"{}"'.format(delivery['id'])
+    ]
+    return ', '.join(values) + '\r\n'
 
 
 # views
@@ -72,18 +79,40 @@ def export_widget():
     return render_template('export_widget.html', exam_id=exam_id, token=token)
 
 
-@app.route('/export', methods=['POST'])
+@app.route('/export')
 def export():
-    data = request.get_json()
-    exam_id = data['exam_id']
-    token = request.headers['Authorization'].split()[1]
+    exam_id = request.args.get('exam_id')
+    token = request.args.get('jwt')
     integration_info = get_integration_info(exam_id)
     try:
         decoded = jwt.decode(token, integration_info['secret'], algorithms=['HS256'])
     except jwt.exceptions.InvalidTokenError:
         abort(403)
 
-    return jsonify()
+    columns = [
+        'ID'
+    ]
+
+    def generate():
+        page = 0
+        has_next = True
+        headers = {'Authorization': 'Bearer {0}'.format(integration_info['token'])}
+
+        yield '\t'.join((x for x in columns)) + '\r\n'
+
+        while has_next:
+            page += 1
+            url = '{0}/api/exams/{1}/deliveries?page={2}&status=complete'.format(app.config['SEI_URL_BASE'], exam_id, str(page))
+            r = requests.get(url, headers=headers)
+            data = r.json()
+            has_next = data['has_next']
+            for delivery in data['results']:
+                yield make_row(delivery)
+
+    filename = 'export.csv'
+    response = Response(generate(), mimetype='text/csv')
+    response.headers['Content-Disposition'] = 'attachment; filename="{0}"'.format(filename)
+    return response
 
 
 @app.route('/complete')
