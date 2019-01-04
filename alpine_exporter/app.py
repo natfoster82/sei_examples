@@ -1,12 +1,14 @@
 from json import loads, dumps
 
-import requests
 import jwt
-from flask import Flask, render_template, request, abort, jsonify, Response
+import requests
+from flask import Flask, render_template, request, abort, Response, redirect, url_for
+from flask_wtf import FlaskForm
+from flask_wtf.csrf import CSRFProtect
 from redis import StrictRedis
 from requests.auth import HTTPBasicAuth
 from werkzeug.contrib.fixers import ProxyFix
-
+from wtforms import StringField
 
 # app setup
 app = Flask(__name__)
@@ -15,10 +17,14 @@ if app.config['PREFERRED_URL_SCHEME'] == 'https':
     app.wsgi_app = ProxyFix(app.wsgi_app)
 
 app.url_map.strict_slashes = False
-
+csrf = CSRFProtect(app)
 
 # some helpers
 redis_store = StrictRedis.from_url(app.config['REDIS_URL'], db=app.config['REDIS_DB'], decode_responses=True)
+
+
+class ConfigureForm(FlaskForm):
+    alpine_secret = StringField('Secret Key')
 
 
 def get_integration_info(exam_id):
@@ -34,7 +40,24 @@ def get_integration_info(exam_id):
     return data
 
 
-def make_row(delivery, exam_title):
+def get_client_id(examinee_info, secret):
+    try:
+        client_id = examinee_info['id']
+    except KeyError:
+        try:
+            client_jwt = examinee_info['jwt']
+            try:
+                decoded_jwt = jwt.decode(client_jwt, secret, algorithms=['HS256'])
+                client_id = decoded_jwt['id']
+            except jwt.exceptions.InvalidTokenError:
+                client_id = ''
+        except KeyError:
+            client_id = ''
+    return client_id
+
+
+def make_row(delivery, exam_title, secret):
+    client_id = get_client_id(delivery['examinee']['info'], secret)
     exam_grade = 'p' if delivery['passed'] else 'f'
     score = str(delivery['score'])
     try:
@@ -48,7 +71,7 @@ def make_row(delivery, exam_title):
 
     values = [
         delivery['examinee_id'],
-        'get from jwt',
+        client_id,
         delivery['exam_id'],
         delivery['examinee_id'],
         delivery['modified_at'],
@@ -140,6 +163,8 @@ def export():
     exam_title = exam_resp.json()['name']
     exam_title_escaped = '"{}"'.format(exam_title)
 
+    alpine_secret = integration_info.get('alpine_secret', 'invalid secret')
+
     def generate():
         page = 0
         has_next = True
@@ -154,7 +179,7 @@ def export():
             has_next = data['has_next']
             for delivery in data['results']:
                 try:
-                    row = make_row(delivery, exam_title_escaped)
+                    row = make_row(delivery, exam_title_escaped, alpine_secret)
                     yield row
                 except Exception as e:
                     print(e)
@@ -163,6 +188,23 @@ def export():
     response = Response(generate(), mimetype='text/csv')
     response.headers['Content-Disposition'] = 'attachment; filename="{0}"'.format(filename)
     return response
+
+
+@app.route('/configure', methods=['GET', 'POST'])
+def configure():
+    exam_id = request.args.get('exam_id')
+    token = request.args.get('jwt')
+    integration_info = get_integration_info(exam_id)
+    try:
+        decoded = jwt.decode(token, integration_info['secret'], algorithms=['HS256'])
+    except jwt.exceptions.InvalidTokenError:
+        abort(403)
+    form = ConfigureForm(**integration_info)
+    if form.validate_on_submit():
+        integration_info['alpine_secret'] = form.alpine_secret.data
+        redis_store.set(exam_id, dumps(integration_info))
+        return redirect(url_for('complete'))
+    return render_template('configure.html', exam_id=exam_id, token=token, form=form)
 
 
 @app.route('/complete')
