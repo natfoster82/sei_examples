@@ -34,9 +34,35 @@ def get_integration_info(exam_id):
     return data
 
 
-def make_row(delivery):
+def make_row(delivery, exam_title):
+    exam_grade = 'p' if delivery['passed'] else 'f'
+    score = str(delivery['score'])
+    try:
+        cutscore = str(delivery['cutscore']['score'])
+    except KeyError:
+        cutscore = ''
+
+    items_correct = delivery['points_earned']
+    items_total = delivery['points_available']
+    items_incorrect = items_total - items_correct
+
     values = [
-        '"{}"'.format(delivery['id'])
+        delivery['examinee_id'],
+        'get from jwt',
+        delivery['exam_id'],
+        delivery['examinee_id'],
+        delivery['modified_at'],
+        str(delivery['used_seconds']),
+        exam_grade,
+        score,
+        cutscore,
+        exam_title,
+        delivery['form_id'],
+        str(items_correct),
+        str(items_incorrect),
+        '0',
+        'OK',
+        score
     ]
     return ', '.join(values) + '\r\n'
 
@@ -90,13 +116,33 @@ def export():
         abort(403)
 
     columns = [
-        'ID'
+        'cand_id',
+        'cand_client_id',
+        'exam_id',
+        'exam_cand_id',
+        'exam_date_time',
+        'exam_time_spent',
+        'exam_grade',
+        'exam_score',
+        'exam_passing_score',
+        'exam_title',
+        'exam_form',
+        'exam_items_correct',
+        'exam_items_incorrect',
+        'exam_items_skipped',
+        'exam_result_status',
+        'exam_score_scaled'
     ]
+
+    headers = {'Authorization': 'Bearer {0}'.format(integration_info['token'])}
+    exam_url = '{0}/api/exams/{1}?only=name'.format(app.config['SEI_URL_BASE'], exam_id)
+    exam_resp = requests.get(exam_url, headers=headers)
+    exam_title = exam_resp.json()['name']
+    exam_title_escaped = '"{}"'.format(exam_title)
 
     def generate():
         page = 0
         has_next = True
-        headers = {'Authorization': 'Bearer {0}'.format(integration_info['token'])}
 
         yield '\t'.join((x for x in columns)) + '\r\n'
 
@@ -107,7 +153,11 @@ def export():
             data = r.json()
             has_next = data['has_next']
             for delivery in data['results']:
-                yield make_row(delivery)
+                try:
+                    row = make_row(delivery, exam_title_escaped)
+                    yield row
+                except Exception as e:
+                    print(e)
 
     filename = 'export.csv'
     response = Response(generate(), mimetype='text/csv')
