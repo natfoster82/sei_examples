@@ -10,6 +10,7 @@ from requests.auth import HTTPBasicAuth
 from werkzeug.contrib.fixers import ProxyFix
 from wtforms import StringField
 
+
 # app setup
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
@@ -21,6 +22,7 @@ csrf = CSRFProtect(app)
 
 # some helpers
 redis_store = StrictRedis.from_url(app.config['REDIS_URL'], db=app.config['REDIS_DB'], decode_responses=True)
+rq_store = StrictRedis.from_url(app.config['REDIS_URL'], db=app.config['REDIS_DB'])
 
 
 class ConfigureForm(FlaskForm):
