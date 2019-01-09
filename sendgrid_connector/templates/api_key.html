@@ -134,13 +134,14 @@
         <form method="post" action="">
             {{ form.hidden_tag() }}
             {{ form.api_key.label() }}
-            {% if form.api_key.errors %}
-                 <ul>
-                    {% for error in form.api_key.errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                 </ul>
-            {% endif %}
+             <ul>
+                {% for error in form.api_key.errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+                {% if bad_key %}
+                    <li>Invalid SendGrid API Key</li>
+                {% endif %}
+             </ul>
             {{ form.api_key() }}
             <input type="submit" value="Submit" class="button" />
         </form>

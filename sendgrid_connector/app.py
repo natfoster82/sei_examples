@@ -210,8 +210,9 @@ def api_key():
     if form.validate_on_submit():
         integration_info['api_key'] = form.api_key.data
         redis_store.set(exam_id, dumps(integration_info))
-        return redirect(url_for('configure', **request.args))
-    return render_template('api_key.html', form=form)
+        return redirect(url_for('configure', exam_id=exam_id, jwt=token))
+    bad_key = request.args.get('bad_key') == 'true'
+    return render_template('api_key.html', form=form, bad_key=bad_key)
 
 
 @app.route('/configure')
@@ -241,7 +242,10 @@ def configure():
 
     exam_json, templates_json, senders_json = pool.map(make_request, request_dicts)
     schema = exam_json['examinee_schema']
-    templates = templates_json['templates']
+    try:
+        templates = templates_json['templates']
+    except KeyError:
+        return redirect(url_for('api_key', exam_id=exam_id, jwt=token, bad_key='true'))
     senders = senders_json
 
     configs = integration_info.get('configs', [])
