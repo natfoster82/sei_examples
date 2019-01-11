@@ -173,7 +173,6 @@ class Exporter:
 
     @staticmethod
     def make_row(l):
-        print(l)
         return ', '.join(l) + '\r\n'
 
     def generate(self):
@@ -189,7 +188,6 @@ class Exporter:
             data = r.json()
             has_next = data['has_next']
             for delivery in data['results']:
-                print(delivery['id'])
                 try:
                     row = self.make_delivery_row(delivery)
                     yield row
