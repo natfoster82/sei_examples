@@ -46,11 +46,11 @@
         <h1>Export SEI Data in Alpine CertMetrics Format</h1>
         <p>
             <label for="start">Start date:</label>
-            <input type="date" id="start" name="start" min="2016-01-01" max="2022-12-31">
+            <input type="datetime-local" id="start-time" name="start-time" value="" min="2018-01-01T00:00" max="">
         </p>
         <p>
             <label for="end">End date:</label>
-            <input type="date" id="end" name="end" min="2018-01-01" max="2018-12-31">
+            <input type="datetime-local" id="end-time" name="end-time" value="" min="2018-01-01T00:00" max="">
         </p>
         <p>
             <a href="{{ url_for('export', exam_id=exam_id, jwt=token) }}" download target="_blank" class="button">Export test data</a>
