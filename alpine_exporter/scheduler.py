@@ -1,9 +1,7 @@
-from datetime import datetime
-
 from rq_scheduler import Scheduler
 
 from app import rq_store
-from jobs import test_worker
+from jobs import upload_all
 
 TEST_WORKER_INTERVAL = 60
 
@@ -14,14 +12,12 @@ if __name__ == '__main__':
     for job in list_of_job_instances:
         scheduler.cancel(job)
 
-    schedule_test_worker = scheduler.schedule(
-        scheduled_time=datetime.utcnow(),
-        func=test_worker,
+    schedule_delete_staged_files = scheduler.cron(
+        cron_string='0 16 * * *',
+        func=upload_all,
         args=[],
         kwargs={},
-        interval=TEST_WORKER_INTERVAL,
-        repeat=None,
-        result_ttl=TEST_WORKER_INTERVAL * 10
+        repeat=None
     )
 
     scheduler.run()

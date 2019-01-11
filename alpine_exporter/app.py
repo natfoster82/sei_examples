@@ -8,7 +8,7 @@ from flask_wtf.csrf import CSRFProtect
 from redis import StrictRedis
 from requests.auth import HTTPBasicAuth
 from werkzeug.contrib.fixers import ProxyFix
-from wtforms import StringField
+from wtforms import StringField, IntegerField
 
 
 # app setup
@@ -26,7 +26,11 @@ rq_store = StrictRedis.from_url(app.config['REDIS_URL'], db=app.config['REDIS_DB
 
 
 class ConfigureForm(FlaskForm):
-    alpine_secret = StringField('Secret Key')
+    secret = StringField('Secret Key')
+    sftp_host = StringField('SFTP Host')
+    sftp_port = IntegerField('SFTP Port')
+    sftp_user = StringField('SFTP User')
+    sftp_password = StringField('SFTP Password')
 
 
 def get_integration_info(exam_id):
@@ -165,7 +169,7 @@ def export():
     exam_title = exam_resp.json()['name']
     exam_title_escaped = '"{}"'.format(exam_title)
 
-    alpine_secret = integration_info.get('alpine_secret', 'invalid secret')
+    secret = integration_info.get('secret', 'invalid secret')
 
     def generate():
         page = 0
@@ -181,7 +185,7 @@ def export():
             has_next = data['has_next']
             for delivery in data['results']:
                 try:
-                    row = make_row(delivery, exam_title_escaped, alpine_secret)
+                    row = make_row(delivery, exam_title_escaped, secret)
                     yield row
                 except Exception as e:
                     print(e)
@@ -203,8 +207,16 @@ def configure():
         abort(403)
     form = ConfigureForm(**integration_info)
     if form.validate_on_submit():
-        integration_info['alpine_secret'] = form.alpine_secret.data
+        integration_info['secret'] = form.secret.data
+        integration_info['sftp_host'] = form.sftp_host.data
+        integration_info['sftp_port'] = form.sftp_port.data
+        integration_info['sftp_user'] = form.sftp_user.data
+        integration_info['sftp_password'] = form.sftp_password.data
         redis_store.set(exam_id, dumps(integration_info))
+        if integration_info['sftp_host']:
+            redis_store.sadd('cron_ids', exam_id)
+        else:
+            redis_store.srem('cron_ids', exam_id)
         return redirect(url_for('complete'))
     return render_template('configure.html', exam_id=exam_id, token=token, form=form)
 
