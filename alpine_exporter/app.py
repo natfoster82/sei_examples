@@ -5,11 +5,11 @@ import requests
 from flask import Flask, render_template, request, abort, Response, redirect, url_for
 from flask_wtf import FlaskForm
 from flask_wtf.csrf import CSRFProtect
-from redis import StrictRedis
 from requests.auth import HTTPBasicAuth
 from werkzeug.contrib.fixers import ProxyFix
 from wtforms import StringField, IntegerField
 
+from helpers import redis_store, get_integration_info, Exporter
 
 # app setup
 app = Flask(__name__)
@@ -20,80 +20,14 @@ if app.config['PREFERRED_URL_SCHEME'] == 'https':
 app.url_map.strict_slashes = False
 csrf = CSRFProtect(app)
 
-# some helpers
-redis_store = StrictRedis.from_url(app.config['REDIS_URL'], db=app.config['REDIS_DB'], decode_responses=True)
-rq_store = StrictRedis.from_url(app.config['REDIS_URL'], db=app.config['REDIS_DB'])
 
-
+# forms
 class ConfigureForm(FlaskForm):
     secret = StringField('Secret Key')
     sftp_host = StringField('SFTP Host')
     sftp_port = IntegerField('SFTP Port')
     sftp_user = StringField('SFTP User')
     sftp_password = StringField('SFTP Password')
-
-
-def get_integration_info(exam_id):
-    data = redis_store.get(exam_id)
-    if data:
-        return loads(data)
-    url = app.config['SEI_URL_BASE'] + '/api/integrations/' + exam_id + '/credentials'
-    resp = requests.get(url, auth=HTTPBasicAuth(username=app.config['SEI_ID'], password=app.config['SEI_SECRET']))
-    if resp.status_code != 200:
-        raise ValueError('No access to this exam_id')
-    data = resp.json()
-    redis_store.set(data['exam_id'], dumps(data))
-    return data
-
-
-def get_client_id(examinee_info, secret):
-    try:
-        client_id = examinee_info['id']
-    except KeyError:
-        try:
-            client_jwt = examinee_info['jwt']
-            try:
-                decoded_jwt = jwt.decode(client_jwt, secret, algorithms=['HS256'])
-                client_id = decoded_jwt['id']
-            except jwt.exceptions.InvalidTokenError:
-                client_id = ''
-        except KeyError:
-            client_id = ''
-    return client_id
-
-
-def make_row(delivery, exam_title, secret):
-    client_id = get_client_id(delivery['examinee']['info'], secret)
-    exam_grade = 'p' if delivery['passed'] else 'f'
-    score = str(delivery['score'])
-    try:
-        cutscore = str(delivery['cutscore']['score'])
-    except KeyError:
-        cutscore = ''
-
-    items_correct = delivery['points_earned']
-    items_total = delivery['points_available']
-    items_incorrect = items_total - items_correct
-
-    values = [
-        delivery['examinee_id'],
-        client_id,
-        delivery['exam_id'],
-        delivery['examinee_id'],
-        delivery['modified_at'],
-        str(delivery['used_seconds']),
-        exam_grade,
-        score,
-        cutscore,
-        exam_title,
-        delivery['form_id'],
-        str(items_correct),
-        str(items_incorrect),
-        '0',
-        'OK',
-        score
-    ]
-    return ', '.join(values) + '\r\n'
 
 
 # views
@@ -138,60 +72,17 @@ def export_widget():
 def export():
     exam_id = request.args.get('exam_id')
     token = request.args.get('jwt')
+    type = request.args.get('type')
     integration_info = get_integration_info(exam_id)
     try:
         decoded = jwt.decode(token, integration_info['secret'], algorithms=['HS256'])
     except jwt.exceptions.InvalidTokenError:
         abort(403)
 
-    columns = [
-        'cand_id',
-        'cand_client_id',
-        'exam_id',
-        'exam_cand_id',
-        'exam_date_time',
-        'exam_time_spent',
-        'exam_grade',
-        'exam_score',
-        'exam_passing_score',
-        'exam_title',
-        'exam_form',
-        'exam_items_correct',
-        'exam_items_incorrect',
-        'exam_items_skipped',
-        'exam_result_status',
-        'exam_score_scaled'
-    ]
+    exporter = Exporter(exam_id, integration_info, type)
 
-    headers = {'Authorization': 'Bearer {0}'.format(integration_info['token'])}
-    exam_url = '{0}/api/exams/{1}?only=name'.format(app.config['SEI_URL_BASE'], exam_id)
-    exam_resp = requests.get(exam_url, headers=headers)
-    exam_title = exam_resp.json()['name']
-    exam_title_escaped = '"{}"'.format(exam_title)
-
-    secret = integration_info.get('secret', 'invalid secret')
-
-    def generate():
-        page = 0
-        has_next = True
-
-        yield '\t'.join((x for x in columns)) + '\r\n'
-
-        while has_next:
-            page += 1
-            url = '{0}/api/exams/{1}/deliveries?page={2}&status=complete'.format(app.config['SEI_URL_BASE'], exam_id, str(page))
-            r = requests.get(url, headers=headers)
-            data = r.json()
-            has_next = data['has_next']
-            for delivery in data['results']:
-                try:
-                    row = make_row(delivery, exam_title_escaped, secret)
-                    yield row
-                except Exception as e:
-                    print(e)
-
-    filename = 'export.csv'
-    response = Response(generate(), mimetype='text/csv')
+    filename = exporter.filename
+    response = Response(exporter.generate(), mimetype='text/csv')
     response.headers['Content-Disposition'] = 'attachment; filename="{0}"'.format(filename)
     return response
 

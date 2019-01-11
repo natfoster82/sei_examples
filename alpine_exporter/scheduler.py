@@ -1,6 +1,6 @@
 from rq_scheduler import Scheduler
 
-from app import rq_store
+from helpers import rq_store
 from jobs import upload_all
 
 TEST_WORKER_INTERVAL = 60

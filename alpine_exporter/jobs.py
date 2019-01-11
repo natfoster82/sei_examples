@@ -1,7 +1,9 @@
-from rq.decorators import job
-from app import redis_store, rq_store, get_integration_info
-import paramiko
 from datetime import datetime
+
+import paramiko
+from rq.decorators import job
+
+from helpers import redis_store, rq_store, get_integration_info
 
 
 def create_sftp_client(host, port, user, password):

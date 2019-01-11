@@ -13,3 +13,5 @@ REDIS_URL = os.environ.get('REDIS_URL', 'redis://redis:6379')
 REDIS_DB = int(os.environ.get('REDIS_DB', '1'))
 
 QUEUES = loads(os.environ.get('QUEUES', '["default", "low"]'))
+
+CHECK_SECRET = loads(os.environ.get('CHECK_SECRET', 'false'))
