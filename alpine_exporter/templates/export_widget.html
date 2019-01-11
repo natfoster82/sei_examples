@@ -16,10 +16,14 @@
         border-radius: 10px;
         padding: 10px 50px 30px 100px;
         box-sizing: border-box;
+        overflow:auto;
         }
-    button {
+    input {
+
+    }
+    .button {
         border: none;
-        margin: 10px 0 0;
+        margin: 10px 20px 0 0;
         text-decoration:none;
         background: #be1515;
         padding: 3px 15px;
@@ -28,7 +32,7 @@
         border-radius: 3px;
         text-transform: uppercase;
     }
-    svg {
+    img {
         float:left;
         margin-left: -75px;
         margin-top: 16px;
@@ -37,7 +41,20 @@
 </style>
 <body>
     <section>
-        <a href="{{ url_for('export', exam_id=exam_id, jwt=token) }}" download target="_blank">Export</a>
+        <img src="{{ url_for('static', filename='logo-alpine.png') }}" alt="Alpine Logo" width="54" />
+        <h1>Export SEI Data in Alpine CertMetrics Format</h1>
+        <p>
+            <label for="start">Start date:</label>
+            <input type="date" id="start" name="start" min="2016-01-01" max="2022-12-31">
+        </p>
+        <p>
+            <label for="end">End date:</label>
+            <input type="date" id="end" name="end" min="2018-01-01" max="2018-12-31">
+        </p>
+        <p>
+            <a href="{{ url_for('export', exam_id=exam_id, jwt=token) }}" download target="_blank" class="button">Export test data</a>
+            <a href="{{ url_for('export', exam_id=exam_id, jwt=token) }}" download target="_blank" class="button">Export candidtate date</a>
+        </p>
     </section>
 </body>
 </html>
