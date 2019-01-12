@@ -44,18 +44,22 @@
     <section>
         <img src="{{ url_for('static', filename='logo-alpine.png') }}" alt="Alpine Logo" width="54" />
         <h1>Export SEI Data in Alpine CertMetrics Format</h1>
-        <p>
-            <label for="start">Start date:</label>
-            <input type="datetime-local" id="start-time" name="start-time" value="" min="2018-01-01T00:00" max="">
-        </p>
-        <p>
-            <label for="end">End date:</label>
-            <input type="datetime-local" id="end-time" name="end-time" value="" min="2018-01-01T00:00" max="">
-        </p>
-        <p>
-            <a href="{{ url_for('export', exam_id=exam_id, jwt=token) }}" download target="_blank" class="button">Export test data</a>
-            <a href="{{ url_for('export', exam_id=exam_id, jwt=token) }}" download target="_blank" class="button">Export candidtate date</a>
-        </p>
+        <form action="{{ url_for('export') }}" method="get">
+            <input type="hidden" name="exam_id" value="{{ exam_id }}" />
+            <input type="hidden" name="jwt" value="{{ token }}" />
+            <p>
+                <label for="start">Start date:</label>
+                <input type="date" id="start" name="start">
+            </p>
+            <p>
+                <label for="end">End date:</label>
+                <input type="date" id="end" name="end">
+            </p>
+            <p>
+                <button type="submit" name="type" value="exam" class="button">Export exam data</button>
+                <button type="submit" name="type" value="cand" class="button">Export candidate data</button>
+            </p>
+        </form>
     </section>
 </body>
 </html>

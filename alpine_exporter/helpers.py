@@ -61,10 +61,12 @@ class Exporter:
         'exam_score_scaled'
     ]
 
-    def __init__(self, exam_id, integration_info, type):
+    def __init__(self, exam_id, integration_info, type, start, end):
         self.exam_id = exam_id
         self.integration_info = integration_info
         self.type = type
+        self.start = start
+        self.end = end
 
         # set secret and headers from integration_info
         self.secret = integration_info.get('secret', 'invalid_secret')
@@ -181,9 +183,17 @@ class Exporter:
 
         yield self.make_header()
 
+        base_url = '{0}/api/exams/{1}/deliveries?status=complete'.format(SEI_URL_BASE, self.exam_id)
+        if self.start:
+            base_url += '&modified_after={0}'.format(self.start.isoformat())
+
+        if self.end:
+            base_url += '&modified_before={0}'.format(self.end.isoformat())
+
         while has_next:
             page += 1
-            url = '{0}/api/exams/{1}/deliveries?page={2}&status=complete'.format(SEI_URL_BASE, self.exam_id, str(page))
+            url = base_url + '&page={0}'.format(str(page))
+
             r = requests.get(url, headers=self.headers)
             data = r.json()
             has_next = data['has_next']

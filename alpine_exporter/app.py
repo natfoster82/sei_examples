@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from json import loads, dumps
 
 import jwt
@@ -72,14 +73,27 @@ def export_widget():
 def export():
     exam_id = request.args.get('exam_id')
     token = request.args.get('jwt')
-    type = request.args.get('type')
     integration_info = get_integration_info(exam_id)
     try:
         decoded = jwt.decode(token, integration_info['secret'], algorithms=['HS256'])
     except jwt.exceptions.InvalidTokenError:
         abort(403)
 
-    exporter = Exporter(exam_id, integration_info, type)
+    type = request.args.get('type')
+    try:
+        start_str = request.args.get('start')
+        start = datetime.strptime(start_str, '%Y-%m-%d')
+    except Exception:
+        start = None
+
+    try:
+        end_str = request.args.get('end')
+        end = datetime.strptime(end_str, '%Y-%m-%d')
+        end += timedelta(hours=24)
+    except Exception:
+        end = None
+
+    exporter = Exporter(exam_id, integration_info, type, start, end)
 
     filename = exporter.filename
     response = Response(exporter.generate(), mimetype='text/csv')
