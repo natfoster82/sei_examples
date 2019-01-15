@@ -180,7 +180,26 @@
                  </ul>
             {% endif %}
             {{ form.sftp_password() }}
-        
+
+            {{ form.sftp_path.label() }}
+            {% if form.sftp_path.errors %}
+                 <ul>
+                    {% for error in form.sftp_path.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                 </ul>
+            {% endif %}
+            {{ form.sftp_path() }}
+
+            {{ form.last_timestamp.label() }}
+            {% if form.last_timestamp.errors %}
+                 <ul>
+                    {% for error in form.last_timestamp.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                 </ul>
+            {% endif %}
+            {{ form.last_timestamp() }}
             <input type="submit" value="Submit" class="button" />
         </form>
     </section>

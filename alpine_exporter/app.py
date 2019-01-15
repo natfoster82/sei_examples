@@ -9,6 +9,7 @@ from flask_wtf.csrf import CSRFProtect
 from requests.auth import HTTPBasicAuth
 from werkzeug.contrib.fixers import ProxyFix
 from wtforms import StringField, IntegerField
+from wtforms.validators import Optional, ValidationError
 
 from helpers import redis_store, get_integration_info, Exporter
 
@@ -26,9 +27,15 @@ csrf = CSRFProtect(app)
 class ConfigureForm(FlaskForm):
     secret = StringField('Secret Key')
     sftp_host = StringField('SFTP Host')
-    sftp_port = IntegerField('SFTP Port')
+    sftp_port = IntegerField('SFTP Port', validators=[Optional()])
     sftp_user = StringField('SFTP User')
     sftp_password = StringField('SFTP Password')
+    sftp_path = StringField('SFTP Path')
+    last_timestamp = StringField('Last Pulled At (Changing this value might cause deliveries to be duplicated or missed)')
+
+    def validate_sftp_path(self, field):
+        if field.data and not field.data.endswith('/'):
+            raise ValidationError('Must end with /')
 
 
 # views
@@ -117,6 +124,7 @@ def configure():
         integration_info['sftp_port'] = form.sftp_port.data
         integration_info['sftp_user'] = form.sftp_user.data
         integration_info['sftp_password'] = form.sftp_password.data
+        integration_info['sftp_path'] = form.sftp_path.data
         redis_store.set(exam_id, dumps(integration_info))
         if integration_info['sftp_host']:
             redis_store.sadd('cron_ids', exam_id)

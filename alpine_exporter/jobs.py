@@ -1,4 +1,5 @@
 from datetime import datetime
+from json import dumps
 from tempfile import TemporaryDirectory
 from zipfile import ZipFile
 
@@ -20,12 +21,11 @@ def create_sftp_client(host, port, user, password):
         sftp = paramiko.SFTPClient.from_transport(transport)
         return sftp
     except Exception as e:
-        print('An error occurred creating SFTP client: %s: %s' % (e.__class__, e))
         if sftp is not None:
             sftp.close()
         if transport is not None:
             transport.close()
-        pass
+        raise e
 
 
 @job('default', connection=rq_store)
@@ -38,13 +38,21 @@ def upload_all():
 @job('default', connection=rq_store)
 def upload_fresh_data(exam_id):
     integration_info = get_integration_info(exam_id)
-    sftp_client = create_sftp_client(integration_info['sftp_host'],
-                                     integration_info['sftp_port'],
-                                     integration_info['sftp_user'],
-                                     integration_info['sftp_password'])
+    try:
+        sftp_client = create_sftp_client(integration_info['sftp_host'],
+                                         integration_info['sftp_port'],
+                                         integration_info['sftp_user'],
+                                         integration_info['sftp_password'])
+    except Exception:
+        # fails silently, but doesn't update the last timestamp so it will pull the right data once the connection is configured correctly
+        return None
+
     last_timestamp = integration_info.get('last_timestamp')
     if last_timestamp:
-        start = parse(last_timestamp)
+        try:
+            start = parse(last_timestamp)
+        except Exception:
+            start = None
     else:
         start = None
     end = datetime.utcnow()
@@ -52,7 +60,7 @@ def upload_fresh_data(exam_id):
 
     cand_filename = 'cand-' + exporter.filename
     exam_filename = 'exam-' + exporter.filename
-    zip_filename = exam_id + '-' + exporter.filename[:11] + '.zip'
+    zip_filename = exam_id + '-' + exporter.filename.split('.')[0] + '.zip'
 
     with TemporaryDirectory() as tempdirname:
         cand_path = '{0}/{1}'.format(tempdirname, cand_filename)
@@ -67,6 +75,8 @@ def upload_fresh_data(exam_id):
                     exam_file.write(exporter.make_row(exam_l))
             zip_file.write(cand_path, cand_filename)
             zip_file.write(exam_path, exam_filename)
-        sftp_client.put(zip_path, 'uploads/' + zip_filename)
-    # TODO: write exporter.last_timestamp to redis
+        sftp_client.put(zip_path, integration_info['sftp_path'] + zip_filename)
     sftp_client.close()
+    if exporter.last_timestamp:
+        integration_info['last_timestamp'] = exporter.last_timestamp
+    redis_store.set(exam_id, dumps(integration_info))
