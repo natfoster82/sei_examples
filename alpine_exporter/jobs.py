@@ -1,9 +1,12 @@
 from datetime import datetime
+from tempfile import TemporaryDirectory
+from zipfile import ZipFile
 
 import paramiko
+from dateutil.parser import parse
 from rq.decorators import job
 
-from helpers import redis_store, rq_store, get_integration_info
+from helpers import redis_store, rq_store, get_integration_info, Exporter
 
 
 def create_sftp_client(host, port, user, password):
@@ -39,5 +42,31 @@ def upload_fresh_data(exam_id):
                                      integration_info['sftp_port'],
                                      integration_info['sftp_user'],
                                      integration_info['sftp_password'])
-    sftp_client.put('testfile.txt', 'uploads/' + datetime.utcnow().isoformat() + '.txt')
+    last_timestamp = integration_info.get('last_timestamp')
+    if last_timestamp:
+        start = parse(last_timestamp)
+    else:
+        start = None
+    end = datetime.utcnow()
+    exporter = Exporter(exam_id, integration_info, 'all', start, end)
+
+    cand_filename = 'cand-' + exporter.filename
+    exam_filename = 'exam-' + exporter.filename
+    zip_filename = exam_id + '-' + exporter.filename[:11] + '.zip'
+
+    with TemporaryDirectory() as tempdirname:
+        cand_path = '{0}/{1}'.format(tempdirname, cand_filename)
+        exam_path = '{0}/{1}'.format(tempdirname, exam_filename)
+        zip_path = '{0}/{1}'.format(tempdirname, zip_filename)
+        with ZipFile(zip_path, 'w') as zip_file:
+            with open(cand_path, 'w') as cand_file, open(exam_path, 'w') as exam_file:
+                for l in exporter.generate():
+                    cand_l = l[:exporter.split_idx]
+                    exam_l = l[exporter.split_idx:]
+                    cand_file.write(exporter.make_row(cand_l))
+                    exam_file.write(exporter.make_row(exam_l))
+            zip_file.write(cand_path, cand_filename)
+            zip_file.write(exam_path, exam_filename)
+        sftp_client.put(zip_path, 'uploads/' + zip_filename)
+    # TODO: write exporter.last_timestamp to redis
     sftp_client.close()

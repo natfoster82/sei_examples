@@ -12,12 +12,14 @@ if __name__ == '__main__':
     for job in list_of_job_instances:
         scheduler.cancel(job)
 
-    schedule_delete_staged_files = scheduler.cron(
-        cron_string='0 16 * * *',
+    scheduler.cron(
+        # cron_string='0 16 * * *',
+        cron_string='* * * * *',
         func=upload_all,
         args=[],
         kwargs={},
-        repeat=None
+        repeat=None,
+        result_ttl=3600
     )
 
     scheduler.run()

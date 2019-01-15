@@ -61,10 +61,14 @@ class Exporter:
         'exam_score_scaled'
     ]
 
+    split_idx = 3
+
     def __init__(self, exam_id, integration_info, type, start, end):
         self.exam_id = exam_id
         self.integration_info = integration_info
         self.type = type
+        if self.type not in {'exam', 'cand', 'all'}:
+            raise ValueError('type must be exam, cand, or all')
         self.start = start
         self.end = end
 
@@ -86,6 +90,7 @@ class Exporter:
         self.exam_title = exam_resp.json()['name']
         self.exam_title = self.exam_title.replace('"', '')
         self.exam_title_escaped = '"{}"'.format(self.exam_title)
+        self.last_timestamp = None
 
     def get_client_id(self, examinee_info):
         try:
@@ -104,11 +109,13 @@ class Exporter:
                 client_id = ''
         return client_id
 
+    @property
     def cand_columns(self):
-        return self.all_columns[:3]
+        return self.all_columns[:self.split_idx]
 
+    @property
     def exam_columns(self):
-        return self.all_columns[3:]
+        return self.all_columns[self.split_idx:]
 
     def cand_values(self, delivery):
         client_id = self.get_client_id(delivery['examinee']['info'])
@@ -155,35 +162,20 @@ class Exporter:
     def all_values(self, delivery):
         return self.cand_values(delivery) + self.exam_values(delivery)
 
-    def make_header(self):
-        if self.type == 'cand':
-            header_list = self.cand_columns()
-        elif self.type == 'exam':
-            header_list = self.exam_columns()
-        else:
-            header_list = self.all_columns
-        return self.make_row(header_list)
-
-    def make_delivery_row(self, delivery):
-        if self.type == 'cand':
-            delivery_list = self.cand_values(delivery)
-        elif self.type == 'exam':
-            delivery_list = self.exam_values(delivery)
-        else:
-            delivery_list = self.all_values(delivery)
-        return self.make_row(delivery_list)
-
     @staticmethod
     def make_row(l):
         return ', '.join(l) + '\r\n'
 
     def generate(self):
+        header = getattr(self, '{}_columns'.format(self.type))
+        values_func = getattr(self, '{}_values'.format(self.type))
+
+        yield header
+
         page = 0
         has_next = True
 
-        yield self.make_header()
-
-        base_url = '{0}/api/exams/{1}/deliveries?status=complete'.format(SEI_URL_BASE, self.exam_id)
+        base_url = '{0}/api/exams/{1}/deliveries?status=complete&sort=modified_at'.format(SEI_URL_BASE, self.exam_id)
         if self.start:
             base_url += '&modified_after={0}'.format(self.start.isoformat())
 
@@ -199,7 +191,12 @@ class Exporter:
             has_next = data['has_next']
             for delivery in data['results']:
                 try:
-                    row = self.make_delivery_row(delivery)
-                    yield row
+                    values = values_func(delivery)
                 except (InvalidSecretError, InvalidDeliveryError):
-                    pass
+                    continue
+                self.last_timestamp = delivery['modified_at']
+                yield values
+
+    def generate_csv(self):
+        for l in self.generate():
+            yield self.make_row(l)
