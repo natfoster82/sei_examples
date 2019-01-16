@@ -121,8 +121,9 @@ class Exporter:
         self.last_timestamp = None
 
     def get_client_id(self, examinee_info):
-        if 'id' in examinee_info:
-            return examinee_info['id']
+        client_id = examinee_info.get('id')
+        if client_id:
+            return client_id
         if 'jwt' in examinee_info:
             client_jwt = examinee_info['jwt']
             try:
