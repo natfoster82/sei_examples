@@ -137,6 +137,13 @@ class Exporter:
                 client_id = ''
         return client_id
 
+    @staticmethod
+    def trim_timestamp(timestamp):
+        try:
+            return timestamp.split('.')[0]
+        except Exception:
+            return ''
+
     @property
     def cand_columns(self):
         return self.all_columns[:self.split_idx]
@@ -150,7 +157,7 @@ class Exporter:
         values = [
             delivery['examinee_id'],
             client_id,
-            delivery['created_at'],
+            self.trim_timestamp(delivery['created_at']),
             '?',
             '?'
         ]
@@ -176,8 +183,8 @@ class Exporter:
             delivery['examinee_id'],
             self.exam_code,
             '',
-            delivery['modified_at'],
-            str(delivery['used_seconds']),
+            self.trim_timestamp(delivery['submitted_at']),
+            str(int(delivery['used_seconds'])),
             exam_grade,
             score,
             str(int(bool(delivery['rescored_at']))),
