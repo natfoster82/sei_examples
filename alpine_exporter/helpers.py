@@ -121,21 +121,18 @@ class Exporter:
         self.last_timestamp = None
 
     def get_client_id(self, examinee_info):
-        try:
-            client_id = examinee_info['id']
-        except KeyError:
+        if 'id' in examinee_info:
+            return examinee_info['id']
+        if 'jwt' in examinee_info:
+            client_jwt = examinee_info['jwt']
             try:
-                client_jwt = examinee_info['jwt']
-                try:
-                    decoded_jwt = jwt.decode(client_jwt, self.secret, algorithms=['HS256'])
-                    client_id = decoded_jwt['id']
-                except jwt.exceptions.InvalidTokenError:
-                    if CHECK_SECRET:
-                        raise InvalidSecretError
-                    client_id = ''
-            except KeyError:
-                client_id = ''
-        return client_id
+                decoded_jwt = jwt.decode(client_jwt, self.secret, algorithms=['HS256'])
+                return decoded_jwt.get('Id', decoded_jwt.get('id', ''))
+            except jwt.exceptions.InvalidTokenError:
+                if CHECK_SECRET:
+                    raise InvalidSecretError
+                return ''
+        return ''
 
     @staticmethod
     def trim_timestamp(timestamp):
