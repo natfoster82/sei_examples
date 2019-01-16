@@ -71,7 +71,7 @@ class Exporter:
         self.end = end
 
         # set secret and headers from integration_info
-        self.secret = integration_info.get('secret', 'invalid_secret')
+        self.secret = integration_info.get('jwt_secret', 'invalid_secret')
         self.headers = {'Authorization': 'Bearer {0}'.format(integration_info['token'])}
 
         # set filename

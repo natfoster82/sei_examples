@@ -131,15 +131,15 @@
         <h1>Export SEI Data in Alpine CertMetrics Format</h1>
         <form method="post" action="">
             {{ form.hidden_tag() }}
-            {{ form.secret.label() }}
-            {% if form.secret.errors %}
+            {{ form.jwt_secret.label() }}
+            {% if form.jwt_secret.errors %}
                  <ul>
-                    {% for error in form.secret.errors %}
+                    {% for error in form.jwt_secret.errors %}
                         <li>{{ error }}</li>
                     {% endfor %}
                  </ul>
             {% endif %}
-            {{ form.secret() }}
+            {{ form.jwt_secret() }}
             
             {{ form.sftp_host.label() }}
             {% if form.sftp_host.errors %}
