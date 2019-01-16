@@ -6,7 +6,6 @@ import jwt
 import requests
 from redis import StrictRedis
 from requests.auth import HTTPBasicAuth
-from werkzeug.contrib.fixers import ProxyFix
 
 from config import REDIS_URL, REDIS_DB, CHECK_SECRET, SEI_URL_BASE, SEI_ID, SEI_SECRET
 
@@ -38,28 +37,58 @@ class InvalidDeliveryError(Exception):
 
 class Exporter:
     all_columns = [
-        # cand columns :3
         'cand_id',
         'cand_client_id',
         'cand_last_update',
-        # exam columns 3:
+        'cand_name_first',
+        'cand_name_last',
+        'cand_email',
+        'cand_company_name',
+        'cand_addr1_line1',
+        'cand_addr1_line2',
+        'cand_addr1_line3',
+        'cand_addr1_city',
+        'cand_addr1_state',
+        'cand_addr1_postal_code',
+        'cand_addr1_country_code',
+        'cand_addr1_phone_number',
+        'cand_addr1_fax_number',
+        'cand_loc_name_first',
+        'cand_loc_name_last',
+        'cand_loc_company_name',
+        'cand_loc_addr1_line1',
+        'cand_loc_addr1_line2',
+        'cand_loc_addr1_line3',
+        'cand_loc_addr1_city',
+        'cand_loc_addr1_state',
+        'cand_loc_addr1_postal_code',
+
         'exam_id',
         'exam_cand_id',
+        'exam_code',
+        'exam_test_center_id',
         'exam_date_time',
         'exam_time_spent',
         'exam_grade',
         'exam_score',
+        'exam_rescored',
         'exam_passing_score',
         'exam_title',
+        'exam_language_id',
+        'exam_version',
         'exam_form',
+        'exam_medium',
         'exam_items_correct',
         'exam_items_incorrect',
         'exam_items_skipped',
+        'exam_auth_id',
+        'exam_voucher_id',
         'exam_result_status',
         'exam_score_scaled'
     ]
 
-    split_idx = 3
+    split_idx = 25
+    empty_cand_values = ['' for x in range(20)]
 
     def __init__(self, exam_id, integration_info, type, start, end):
         self.exam_id = exam_id
@@ -88,6 +117,7 @@ class Exporter:
         self.exam_title = exam_resp.json()['name']
         self.exam_title = self.exam_title.replace('"', '')
         self.exam_title_escaped = '"{}"'.format(self.exam_title)
+        self.exam_code = integration_info.get('exam_code') or ''.join([x[0].upper() for x in self.exam_title.split(' ')])
         self.last_timestamp = None
 
     def get_client_id(self, examinee_info):
@@ -120,9 +150,11 @@ class Exporter:
         values = [
             delivery['examinee_id'],
             client_id,
-            delivery['created_at']
+            delivery['created_at'],
+            '?',
+            '?'
         ]
-        return values
+        return values + self.empty_cand_values
 
     def exam_values(self, delivery):
         exam_grade = 'p' if delivery['passed'] else 'f'
@@ -132,26 +164,34 @@ class Exporter:
         except KeyError:
             cutscore = ''
 
-        items_correct = delivery['points_earned']
-        items_total = delivery['points_available']
         try:
+            items_correct = int(delivery['points_earned'])
+            items_total = int(delivery['points_available'])
             items_incorrect = items_total - items_correct
         except TypeError:
-            raise InvalidSecretError
+            raise InvalidDeliveryError
 
         values = [
-            delivery['exam_id'],
+            delivery['id'],
             delivery['examinee_id'],
+            self.exam_code,
+            '',
             delivery['modified_at'],
             str(delivery['used_seconds']),
             exam_grade,
             score,
+            str(int(bool(delivery['rescored_at']))),
             cutscore,
             self.exam_title_escaped,
+            '',
+            '',
             delivery['form_id'],
+            '',
             str(items_correct),
             str(items_incorrect),
             '0',
+            '',
+            '',
             'OK',
             score
         ]
