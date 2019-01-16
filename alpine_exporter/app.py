@@ -25,6 +25,7 @@ csrf = CSRFProtect(app)
 
 # forms
 class ConfigureForm(FlaskForm):
+    exam_code = StringField('Exam Code')
     jwt_secret = StringField('Secret Key')
     sftp_host = StringField('SFTP Host')
     sftp_port = IntegerField('SFTP Port', validators=[Optional()])
@@ -114,6 +115,7 @@ def configure():
         abort(403)
     form = ConfigureForm(**integration_info)
     if form.validate_on_submit():
+        integration_info['exam_code'] = form.exam_code.data
         integration_info['jwt_secret'] = form.jwt_secret.data
         integration_info['sftp_host'] = form.sftp_host.data
         integration_info['sftp_port'] = form.sftp_port.data
