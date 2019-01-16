@@ -1,4 +1,5 @@
 import click
+
 from app import app
 from jobs import upload_fresh_data
 

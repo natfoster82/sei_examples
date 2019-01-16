@@ -4,12 +4,9 @@ from urllib.parse import quote_plus
 
 import jwt
 import requests
-from flask_wtf import FlaskForm
-from flask_wtf.csrf import CSRFProtect
 from redis import StrictRedis
 from requests.auth import HTTPBasicAuth
 from werkzeug.contrib.fixers import ProxyFix
-from wtforms import StringField, IntegerField
 
 from config import REDIS_URL, REDIS_DB, CHECK_SECRET, SEI_URL_BASE, SEI_ID, SEI_SECRET
 
