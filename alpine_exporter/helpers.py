@@ -162,8 +162,8 @@ class Exporter:
         return values + self.empty_cand_values
 
     def exam_values(self, delivery):
-        if CHECK_SECRET:
-            self.get_client_id(delivery['examinee']['info'])
+        # check secret here to keep them in line
+        self.get_client_id(delivery['examinee']['info'])
         exam_grade = 'p' if delivery['passed'] else 'f'
         score = str(delivery['score'])
         try:
