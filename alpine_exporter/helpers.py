@@ -207,7 +207,7 @@ class Exporter:
 
     @staticmethod
     def make_row(l):
-        return ', '.join(l) + '\r\n'
+        return ','.join(l) + '\r\n'
 
     def generate(self):
         header = getattr(self, '{}_columns'.format(self.type))
