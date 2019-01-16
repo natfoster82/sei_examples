@@ -1,10 +1,9 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from json import dumps
 from tempfile import TemporaryDirectory
 from zipfile import ZipFile
 
 import paramiko
-from dateutil.parser import parse
 from rq.decorators import job
 
 from helpers import redis_store, rq_store, get_integration_info, Exporter
@@ -45,17 +44,11 @@ def upload_fresh_data(exam_id):
                                          integration_info['sftp_password'])
     except Exception:
         # fails silently, but doesn't update the last timestamp so it will pull the right data once the connection is configured correctly
+        # TODO: leave a message for the exam administrator
         return None
 
-    last_timestamp = integration_info.get('last_timestamp')
-    if last_timestamp:
-        try:
-            start = parse(last_timestamp)
-        except Exception:
-            start = None
-    else:
-        start = None
-    end = datetime.utcnow()
+    start = integration_info.get('last_timestamp')
+    end = datetime.utcnow().isoformat()
     exporter = Exporter(exam_id, integration_info, 'all', start, end)
 
     cand_filename = 'cand-' + exporter.filename

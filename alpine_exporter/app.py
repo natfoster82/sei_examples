@@ -87,18 +87,13 @@ def export():
         abort(403)
 
     type = request.args.get('type')
-    try:
-        start_str = request.args.get('start')
-        start = datetime.strptime(start_str, '%Y-%m-%d')
-    except Exception:
-        start = None
+    start = request.args.get('start')
 
-    try:
-        end_str = request.args.get('end')
-        end = datetime.strptime(end_str, '%Y-%m-%d')
-        end += timedelta(hours=24)
-    except Exception:
-        end = None
+    end = request.args.get('end')
+    if end:
+        end_obj = datetime.strptime(end, '%Y-%m-%d')
+        end_obj += timedelta(hours=24)
+        end = end_obj.strftime('%Y-%m-%d')
 
     exporter = Exporter(exam_id, integration_info, type, start, end)
 
@@ -125,6 +120,7 @@ def configure():
         integration_info['sftp_user'] = form.sftp_user.data
         integration_info['sftp_password'] = form.sftp_password.data
         integration_info['sftp_path'] = form.sftp_path.data
+        integration_info['last_timestamp'] = form.last_timestamp.data
         redis_store.set(exam_id, dumps(integration_info))
         if integration_info['sftp_host']:
             redis_store.sadd('cron_ids', exam_id)

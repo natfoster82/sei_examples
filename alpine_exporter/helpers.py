@@ -1,5 +1,6 @@
 from datetime import datetime
 from json import loads, dumps
+from urllib.parse import quote_plus
 
 import jwt
 import requests
@@ -177,15 +178,14 @@ class Exporter:
 
         base_url = '{0}/api/exams/{1}/deliveries?status=complete&sort=modified_at'.format(SEI_URL_BASE, self.exam_id)
         if self.start:
-            base_url += '&modified_after={0}'.format(self.start.isoformat())
+            base_url += '&modified_after={0}'.format(quote_plus(self.start))
 
         if self.end:
-            base_url += '&modified_before={0}'.format(self.end.isoformat())
+            base_url += '&modified_before={0}'.format(quote_plus(self.end))
 
         while has_next:
             page += 1
             url = base_url + '&page={0}'.format(str(page))
-
             r = requests.get(url, headers=self.headers)
             data = r.json()
             has_next = data['has_next']
