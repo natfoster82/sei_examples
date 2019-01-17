@@ -1,5 +1,3 @@
 # Result Connector
 
-A flask app that listens for the delivery_completed event from SEI, grabs the complete delivery object, and then transforms and posts the results to an external system
-
-Currently incomplete
+A flask app that pulls deliveries from SEI, formats them into an Alpine CertMetrics CSV file to be downloaded or posted to an SFTP server.
