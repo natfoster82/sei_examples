@@ -27,11 +27,11 @@ csrf = CSRFProtect(app)
 class ConfigureForm(FlaskForm):
     exam_code = StringField('Exam Code')
     jwt_secret = StringField('Secret Key')
-    sftp_host = StringField('SFTP Host')
-    sftp_port = IntegerField('SFTP Port', validators=[Optional()])
-    sftp_user = StringField('SFTP User')
-    sftp_password = StringField('SFTP Password')
-    sftp_path = StringField('SFTP Path')
+    sftp_host = StringField('FTP Host')
+    sftp_port = IntegerField('FTP Port', validators=[Optional()])
+    sftp_user = StringField('FTP User')
+    sftp_password = StringField('FTP Password')
+    sftp_path = StringField('FTP Path')
     last_timestamp = StringField('Last Pulled At (Changing this value might cause deliveries to be duplicated or missed)')
 
     def validate_sftp_path(self, field):

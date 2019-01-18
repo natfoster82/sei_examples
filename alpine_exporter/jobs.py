@@ -1,4 +1,5 @@
 from datetime import datetime
+from ftplib import FTP_TLS
 from json import dumps
 from tempfile import TemporaryDirectory
 from zipfile import ZipFile
@@ -37,15 +38,6 @@ def upload_all():
 @job('default', connection=rq_store)
 def upload_fresh_data(exam_id):
     integration_info = get_integration_info(exam_id)
-    try:
-        sftp_client = create_sftp_client(integration_info['sftp_host'],
-                                         integration_info['sftp_port'],
-                                         integration_info['sftp_user'],
-                                         integration_info['sftp_password'])
-    except Exception:
-        # fails silently, but doesn't update the last timestamp so it will pull the right data once the connection is configured correctly
-        # TODO: leave a message for the exam administrator
-        return None
 
     start = integration_info.get('last_timestamp')
     end = datetime.utcnow().isoformat()
@@ -68,8 +60,11 @@ def upload_fresh_data(exam_id):
                     exam_file.write(exporter.make_row(exam_l))
             zip_file.write(cand_path, cand_filename)
             zip_file.write(exam_path, exam_filename)
-        sftp_client.put(zip_path, integration_info['sftp_path'] + zip_filename)
-    sftp_client.close()
+        with FTP_TLS() as ftp:
+            ftp.connect(integration_info['sftp_path'], integration_info.get('sftp_port') or 21)
+            ftp.login(integration_info['sftp_user'], integration_info['sftp_password'])
+            with open(zip_path, 'rb') as zip_file:
+                ftp.storbinary('STOR ' + integration_info['sftp_path'] + zip_filename, zip_file, 1024)
     if exporter.last_timestamp:
         integration_info['last_timestamp'] = exporter.last_timestamp
     redis_store.set(exam_id, dumps(integration_info))
