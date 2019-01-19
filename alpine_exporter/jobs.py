@@ -1,5 +1,4 @@
 from datetime import datetime
-from ftplib import FTP_TLS
 from json import dumps
 from tempfile import TemporaryDirectory
 from zipfile import ZipFile
@@ -7,7 +6,7 @@ from zipfile import ZipFile
 import paramiko
 from rq.decorators import job
 
-from helpers import redis_store, rq_store, get_integration_info, Exporter
+from helpers import redis_store, rq_store, get_integration_info, Exporter, MyFTP_TLS
 
 
 def create_sftp_client(host, port, user, password):
@@ -60,11 +59,10 @@ def upload_fresh_data(exam_id):
                     exam_file.write(exporter.make_row(exam_l))
             zip_file.write(cand_path, cand_filename)
             zip_file.write(exam_path, exam_filename)
-        with FTP_TLS() as ftp:
+        with MyFTP_TLS() as ftp:
             ftp.connect(integration_info['sftp_host'], integration_info.get('sftp_port') or 21)
-            ftp.auth()
-            ftp.prot_p()
             ftp.login(integration_info['sftp_user'], integration_info['sftp_password'])
+            ftp.prot_p()
             with open(zip_path, 'rb') as zip_file:
                 ftp.storbinary('STOR ' + integration_info['sftp_path'] + zip_filename, zip_file, 1024)
     if exporter.last_timestamp:

@@ -1,3 +1,4 @@
+import ftplib
 from datetime import datetime
 from json import loads, dumps
 from urllib.parse import quote_plus
@@ -244,3 +245,16 @@ class Exporter:
     def generate_csv(self):
         for l in self.generate():
             yield self.make_row(l)
+
+
+# copied from https://stackoverflow.com/questions/14659154/ftpes-session-reuse-required
+# fixes some bug I'm not old enough to understand
+class MyFTP_TLS(ftplib.FTP_TLS):
+    """Explicit FTPS, with shared TLS session"""
+    def ntransfercmd(self, cmd, rest=None):
+        conn, size = ftplib.FTP.ntransfercmd(self, cmd, rest)
+        if self._prot_p:
+            conn = self.context.wrap_socket(conn,
+                                            server_hostname=self.host,
+                                            session=self.sock.session)  # this is the fix
+        return conn, size
