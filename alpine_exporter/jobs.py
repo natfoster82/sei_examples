@@ -62,6 +62,8 @@ def upload_fresh_data(exam_id):
             zip_file.write(exam_path, exam_filename)
         with FTP_TLS() as ftp:
             ftp.connect(integration_info['sftp_host'], integration_info.get('sftp_port') or 21)
+            ftp.auth()
+            ftp.prot_p()
             ftp.login(integration_info['sftp_user'], integration_info['sftp_password'])
             with open(zip_path, 'rb') as zip_file:
                 ftp.storbinary('STOR ' + integration_info['sftp_path'] + zip_filename, zip_file, 1024)
