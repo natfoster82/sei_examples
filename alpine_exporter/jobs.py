@@ -64,7 +64,10 @@ def upload_fresh_data(exam_id):
             ftp.login(integration_info['sftp_user'], integration_info['sftp_password'])
             ftp.prot_p()
             with open(zip_path, 'rb') as zip_file:
-                ftp.storbinary('STOR ' + integration_info['sftp_path'] + zip_filename, zip_file, 1024)
+                try:
+                    ftp.storbinary('STOR ' + integration_info['sftp_path'] + zip_filename, zip_file, 1024)
+                except OSError:
+                    pass
     if exporter.last_timestamp:
         integration_info['last_timestamp'] = exporter.last_timestamp
     redis_store.set(exam_id, dumps(integration_info))
