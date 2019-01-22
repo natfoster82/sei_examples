@@ -161,17 +161,7 @@
                  </ul>
             {% endif %}
             {{ form.sftp_host() }}
-                    
-            {{ form.sftp_port.label() }}
-            {% if form.sftp_port.errors %}
-                 <ul>
-                    {% for error in form.sftp_port.errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                 </ul>
-            {% endif %}
-            {{ form.sftp_port() }}
-                    
+
             {{ form.sftp_user.label() }}
             {% if form.sftp_user.errors %}
                  <ul>
