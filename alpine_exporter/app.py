@@ -99,7 +99,7 @@ def export():
     exporter = Exporter(exam_id, integration_info, type, start, end)
 
     filename = exporter.filename
-    response = Response(exporter.generate_csv(), mimetype='text/csv')
+    response = Response(exporter.generate_csv(bom=True), mimetype='text/csv')
     response.headers['Content-Disposition'] = 'attachment; filename="{0}"'.format(filename)
     return response
 

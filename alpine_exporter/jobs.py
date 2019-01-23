@@ -1,3 +1,4 @@
+import codecs
 from datetime import datetime
 from json import dumps
 from tempfile import TemporaryDirectory
@@ -51,7 +52,7 @@ def upload_fresh_data(exam_id):
         exam_path = '{0}/{1}'.format(tempdirname, exam_filename)
         zip_path = '{0}/{1}'.format(tempdirname, zip_filename)
         with ZipFile(zip_path, 'w') as zip_file:
-            with open(cand_path, 'w') as cand_file, open(exam_path, 'w') as exam_file:
+            with codecs.open(cand_path, 'w', encoding='utf-8-sig') as cand_file, codecs.open(exam_path, 'w', encoding='utf-8-sig') as exam_file:
                 for l in exporter.generate():
                     cand_l = l[:exporter.split_idx]
                     exam_l = l[exporter.split_idx:]

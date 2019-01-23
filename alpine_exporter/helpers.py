@@ -1,3 +1,4 @@
+import codecs
 import ftplib
 from datetime import datetime
 from json import loads, dumps
@@ -242,7 +243,9 @@ class Exporter:
                 self.last_timestamp = delivery['modified_at']
                 yield values
 
-    def generate_csv(self):
+    def generate_csv(self, bom=False):
+        if bom:
+            yield codecs.BOM_UTF8
         for l in self.generate():
             yield self.make_row(l)
 
