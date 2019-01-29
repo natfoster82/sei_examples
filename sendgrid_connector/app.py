@@ -61,7 +61,7 @@ def build_template_data(delivery, to_dict):
         'score_percent': score_percent,
         'passed': delivery['passed'],
         'cutscore': delivery['cutscore'],
-        'content_area_breakdown': delivery['content_area_breakdown'],
+        'breakdown_objects': delivery['breakdown_objects'],
         'status': delivery['status'],
         'type': delivery['type'],
         'duration': delivery['used_seconds'],
@@ -135,7 +135,7 @@ def events():
     # get full delivery object from SEI
     # TODO: only do this for delivery type events
     delivery_id = body['delivery_id']
-    delivery_url = '{0}/api/exams/{1}/deliveries/{2}?include=exam,content_area_breakdown,score_token'.format(app.config['SEI_URL_BASE'], exam_id, delivery_id)
+    delivery_url = '{0}/api/exams/{1}/deliveries/{2}?include=exam,breakdown_objects,score_token'.format(app.config['SEI_URL_BASE'], exam_id, delivery_id)
     delivery_headers = {'Authorization': 'Bearer {0}'.format(integration_info['token'])}
     delivery_response = requests.get(delivery_url, headers=delivery_headers)
     delivery_json = delivery_response.json()
