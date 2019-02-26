@@ -194,7 +194,7 @@ class Exporter:
             self.exam_title_escaped,
             '',
             '',
-            delivery['form_id'],
+            str(delivery['form_id']),
             '',
             str(items_correct),
             str(items_incorrect),
