@@ -1,0 +1,26 @@
+@import './reset';
+@import './fonts';
+@import './mixins';
+
+body {
+  font-family: Arial, arial, verdana, sans-serif;
+	font-family: Trebuchet, 'TrebuchetMS', 'Trebuchet MS', Arial, sans-serif;
+  background: #fff;
+}
+a, a:link, a:visited {
+	color:#f60a00;
+}
+a:hover {
+	text-decoration: underline;
+}
+h1, h2, h3, h4 {
+	font-weight:200;
+}
+h1 {
+	-webkit-font-smoothing: antialiased;
+}
+p {
+	line-height: 150%;
+  color:#333;
+	@include smoothFonts;
+}

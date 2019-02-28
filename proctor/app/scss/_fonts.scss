@@ -1,0 +1,32 @@
+@charset "UTF-8";
+/* Fonts */
+
+@font-face {
+  font-family: 'fontello';
+  src: url('../fonts/fontello.eot?32953337');
+  src: url('../fonts/fontello.eot?32953337#iefix') format('embedded-opentype'),
+    url('../fonts/fontello.woff?32953337') format('woff'),
+    url('../fonts/fontello.ttf?32953337') format('truetype'),
+    url('../fonts/fontello.svg?32953337#fontello') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+ 
+ [class^="icon-"]:before, [class*=" icon-"]:before {
+  font-family: "fontello";
+  font-style: normal;
+  font-weight: normal;
+  speak: none;
+  display: inline-block;
+  text-decoration: inherit;
+  width: 1em;
+  text-align: center;
+  font-variant: normal;
+  text-transform: none;
+  /* you can be more comfortable with increased icons size */
+  /* font-size: 120%; */
+  /* Uncomment for 3D effect */
+  /* text-shadow: 1px 1px 1px rgba(127, 127, 127, 0.3); */
+}
+ 
+.iconLinkExt:before { content: '\e800'; } /* '' */

@@ -1,0 +1,148 @@
+$tablet-max: 767px;
+/*HTML5 Declarations*/
+
+article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+
+/*Custom Reset*/
+html {
+  box-sizing: border-box;
+}
+*, *:before, *:after {
+	box-sizing: inherit;
+}
+
+html, body, div, span, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, code, em, img, q, s, small, strike, strong, sub, sup, tt, b, u, i, center, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary, time, mark, audio, video {
+	border: 0;
+	margin: 0;
+	padding: 0;
+	vertical-align: baseline;
+}
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after, q:before, q:after {
+	content: '';
+	content: none;
+}
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+body {
+	line-height: 1;
+}
+:focus,
+::-moz-focus-inner { 
+	border:0;
+	outline-width: 0;
+	outline:0;
+	-moz-appearance:none;
+}
+a {
+	text-decoration: none;
+	transition: 0.2s;
+}
+a:focus, a:hover, a:active {
+	text-decoration: none;
+}
+
+ul, ol, li{
+	list-style:none;
+	margin:0;
+	padding:0;
+}
+.clear_both {
+	clear: both;
+}
+div, p, h1, h2, h3, h4, h5, h6, section, article, aside, header, footer, ul, ol, dl, li, dt, dd, audio, video, nav, blockquote {
+	&.mobile_only {
+		display:none;
+
+		@media screen and (max-width: $tablet-max) { 
+			display: block;
+		}
+	}
+}
+a, em, strong, span, b, u, i, sub, sup, time {
+	&.mobile_only {
+		display:none;
+
+		@media screen and (max-width: $tablet-max) { 
+			display: inline;
+		}
+	}	
+}
+table {
+	&.mobile_only {
+		display:none;
+
+		@media screen and (max-width: $tablet-max) { 
+			display: table;
+		}
+	}	
+}
+tr {
+	&.mobile_only {
+		display:none;
+
+		@media screen and (max-width: $tablet-max) { 
+			display: table-row;
+		}
+	}	
+}
+td {
+	&.mobile_only {
+		display:none;
+
+		@media screen and (max-width: $tablet-max) { 
+			display: table-cell;
+		}
+	}	
+}
+div, p, h1, h2, h3, h4, h5, h6, section, article, aside, header, footer, ul, ol, dl, li, dt, dd, audio, video, nav, blockquote {
+	&.desktop_only {
+		display:block;
+
+		@media screen and (max-width: $tablet-max) { 
+			display: none;
+		}
+	}
+}
+a, em, strong, span, b, u, i, sub, sup, time {
+	&.desktop_only {
+		display: inline;
+
+		@media screen and (max-width: $tablet-max) { 
+			display: none;
+		}
+	}	
+}
+table {
+	&.desktop_only {
+		display:table;
+
+		@media screen and (max-width: $tablet-max) { 
+			display: none;
+		}
+	}	
+}
+tr {
+	&.desktop_only {
+		display:table-row;
+
+		@media screen and (max-width: $tablet-max) { 
+			display: none;
+		}
+	}	
+}
+td {
+	&.desktop_only {
+		display:table-cell;
+
+		@media screen and (max-width: $tablet-max) { 
+			display: none;
+		}
+	}	
+}

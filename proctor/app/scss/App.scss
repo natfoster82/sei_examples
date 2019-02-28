@@ -1,0 +1,12 @@
+.bulb {
+	min-width: 100%;
+	min-height: 100%;
+	z-index: -1000;
+	overflow: hidden;
+	width: auto;
+	height: auto;
+	position: absolute;
+	left: 0;
+	top: 0;
+	opacity: 0.7;
+}
