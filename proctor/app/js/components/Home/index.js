@@ -1,16 +1,12 @@
 // Core
-import React from 'react';
-import css from './style.scss';
+import React, { Component } from 'react';
+// import css from './style.scss';
 
-class Home extends React.Component {
+class Home extends Component {
   render() {
     return (
       <div>
-        <article className={ css.Home }>
-          <p className={ css.p }>
-            Home Page
-          </p>
-        </article>
+        <h1>Home</h1>
       </div>
     )
   }
