@@ -53,11 +53,14 @@ def upload_fresh_data(exam_id):
         zip_path = '{0}/{1}'.format(tempdirname, zip_filename)
         with ZipFile(zip_path, 'w') as zip_file:
             with codecs.open(cand_path, 'w', encoding='utf-8-sig') as cand_file, codecs.open(exam_path, 'w', encoding='utf-8-sig') as exam_file:
-                for l in exporter.generate():
-                    cand_l = l[:exporter.split_idx]
-                    exam_l = l[exporter.split_idx:]
-                    cand_file.write(exporter.make_row(cand_l))
-                    exam_file.write(exporter.make_row(exam_l))
+                def get_buffer(row_type):
+                    if row_type == 'cand':
+                        return cand_file
+                    
+                    if row_type == 'exam':
+                        return exam_file
+
+                exporter.generate(get_buffer=get_buffer)
             zip_file.write(cand_path, cand_filename)
             zip_file.write(exam_path, exam_filename)
         with MyFTP_TLS() as ftp:
