@@ -112,9 +112,10 @@ class Exporter:
         self.type = type
         if self.type not in {'exam', 'cand', 'all', 'item'}:
             raise ValueError('type must be exam, cand, item, or all')
+        self.get_header_row = getattr(self, '{}_columns'.format(self.type))
+        self.get_values_row = getattr(self, '{}_values'.format(self.type))
         self.start = start
         self.end = end
-        self.item_cache = {}
 
         # set secret and headers from integration_info
         self.secret = integration_info.get('jwt_secret', 'invalid_secret')
@@ -155,18 +156,15 @@ class Exporter:
                 return ''
         return ''
 
-    @staticmethod
-    def trim_timestamp(timestamp):
+    def trim_timestamp(self, timestamp):
         try:
             return timestamp.split('.')[0]
         except Exception:
             return ''
 
-    @property
     def cand_columns(self):
         return self.all_columns[:self.split_idx]
 
-    @property
     def exam_columns(self):
         return self.all_columns[self.split_idx:]
 
@@ -263,16 +261,13 @@ class Exporter:
     def all_values(self, delivery):
         return self.cand_values(delivery) + self.exam_values(delivery)
 
-    @staticmethod
-    def make_row(l):
+    def make_row(self, l):
         return ','.join(l) + '\r\n'
 
     def generate(self, get_buffer=None):
-        header = getattr(self, '{}_columns'.format(self.type))
-        values_func = getattr(self, '{}_values'.format(self.type))
         buffer = get_buffer(self.type)
 
-        yield self.make_row(header)
+        yield self.make_row(self.get_header_row())
 
         page = 0
         has_next = True
@@ -284,8 +279,6 @@ class Exporter:
         if self.end:
             base_url += '&modified_before={0}'.format(quote_plus(self.end))
 
-        from pprint import pprint
-
         while has_next:
             page += 1
             url = base_url + '&page={0}'.format(str(page))
@@ -293,9 +286,8 @@ class Exporter:
             data = r.json()
             has_next = data['has_next']
             for delivery in data['results']:
-                pprint(delivery)
                 try:
-                    values = values_func(delivery)
+                    values = self.get_values_row(delivery)
                 except (InvalidSecretError, InvalidDeliveryError):
                     continue
                 self.last_timestamp = delivery['modified_at']
