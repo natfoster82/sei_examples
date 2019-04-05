@@ -91,7 +91,7 @@ class Exporter:
         'exam_score_scaled'
     ]
 
-    item_columns = [
+    item_columns_ = [
         'item_exam_id',
         'item_name',
         'item_type',
@@ -140,6 +140,7 @@ class Exporter:
         self.exam_title_escaped = '"{}"'.format(self.exam_title)
         self.exam_code = integration_info.get('exam_code') or ''.join([x[0].upper() for x in self.exam_title.split(' ')])
         self.last_timestamp = None
+        self.item_version_cache = {}
 
     def get_client_id(self, examinee_info):
         client_id = examinee_info.get('id')
@@ -167,6 +168,9 @@ class Exporter:
 
     def exam_columns(self):
         return self.all_columns[self.split_idx:]
+
+    def item_columns(self):
+        return self.item_columns_
 
     def cand_values(self, delivery):
         client_id = self.get_client_id(delivery['examinee']['info'])
@@ -226,19 +230,22 @@ class Exporter:
         item_responses = delivery['item_responses']
         values = []
 
-        item_ids = [resp['item_id'] for resp in item_responses]
+        all_item_version_ids = [resp['item_version_id'] for resp in item_responses]
+        new_item_version_ids = [version_id for version_id in all_item_version_ids if version_id not in self.item_version_cache]
         ready_requests = []
 
-        for item_id in item_ids:
-            url = '{sei_url_base}/api/exams/{exam_id}/items/{item_id}?include=version&version_number=1'\
-                .format(sei_url_base=SEI_URL_BASE, exam_id=self.exam_id, item_id=item_id)
+        for item_version_id in new_item_version_ids:
+            url = '{sei_url_base}/api/exams/{exam_id}/item_versions/{item_version_id}?include=item'\
+                .format(sei_url_base=SEI_URL_BASE, exam_id=self.exam_id, item_version_id=item_version_id)
             ready_requests.append(url)
 
-        responses = collections.deque(async_request.map({ 'headers': self.headers }, ready_requests))
+        responses = async_request.map({ 'headers': self.headers }, ready_requests)
+        responses_json = [item_version.json for item_version in responses]
+        self.item_version_cache.update({ item_version['id']: item_version for item_version in responses_json })
 
         for resp in item_responses:
-            item = responses.popleft().json
-            item_version = item['version']
+            item_version = self.item_version_cache[resp['item_version_id']]
+            item = item_version['item']
 
             item_response = resp
             item_response['item'] = item
@@ -259,16 +266,12 @@ class Exporter:
         return values
 
     def all_values(self, delivery):
-        return self.cand_values(delivery) + self.exam_values(delivery)
+        return self.cand_values(delivery) + self.exam_values(delivery) + self.item_values(delivery)
 
     def make_row(self, l):
         return ','.join(l) + '\r\n'
 
     def generate(self, get_buffer=None):
-        buffer = get_buffer(self.type)
-
-        yield self.make_row(self.get_header_row())
-
         page = 0
         has_next = True
 
@@ -279,6 +282,18 @@ class Exporter:
         if self.end:
             base_url += '&modified_before={0}'.format(quote_plus(self.end))
 
+        if self.type == 'all' or self.type == 'cand':
+            cand_buffer = get_buffer('cand')
+            yield cand_buffer.write(self.make_row(self.cand_columns()))
+        
+        if self.type == 'all' or self.type == 'exam':
+            exam_buffer = get_buffer('exam')
+            yield exam_buffer.write(self.make_row(self.exam_columns()))
+        
+        if self.type == 'all' or self.type == 'item':
+            item_buffer = get_buffer('item')
+            yield item_buffer.write(self.make_row(self.item_columns()))
+
         while has_next:
             page += 1
             url = base_url + '&page={0}'.format(str(page))
@@ -287,16 +302,18 @@ class Exporter:
             has_next = data['has_next']
             for delivery in data['results']:
                 try:
-                    values = self.get_values_row(delivery)
+                    if self.type == 'all' or self.type == 'cand':
+                        yield cand_buffer.write(self.make_row(self.cand_values(delivery)))
+                    
+                    if self.type == 'all' or self.type == 'exam':
+                        yield exam_buffer.write(self.make_row(self.exam_values(delivery)))
+                    
+                    if self.type == 'all' or self.type == 'item':
+                        for response_row in self.item_values(delivery):
+                            yield item_buffer.write(self.make_row(response_row))
                 except (InvalidSecretError, InvalidDeliveryError):
                     continue
                 self.last_timestamp = delivery['modified_at']
-
-                if self.type == 'item':
-                    for response_row in values:
-                        yield buffer.write(self.make_row(response_row))
-                else:
-                    yield buffer.write(self.make_row(values))
 
     def generate_csv(self, bom=False):
         if bom:
