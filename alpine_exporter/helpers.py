@@ -239,9 +239,10 @@ class Exporter:
                 .format(sei_url_base=SEI_URL_BASE, exam_id=self.exam_id, item_version_id=item_version_id)
             ready_requests.append(url)
 
-        responses = async_request.map({ 'headers': self.headers }, ready_requests)
-        responses_json = [item_version.json for item_version in responses]
-        self.item_version_cache.update({ item_version['id']: item_version for item_version in responses_json })
+        if len(ready_requests) > 0:
+            responses = async_request.map({ 'headers': self.headers }, ready_requests)
+            responses_json = [item_version.json for item_version in responses]
+            self.item_version_cache.update({ item_version['id']: item_version for item_version in responses_json })
 
         for resp in item_responses:
             item_version = self.item_version_cache[resp['item_version_id']]
