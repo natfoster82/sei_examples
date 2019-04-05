@@ -8,7 +8,6 @@ import jwt
 import requests
 from redis import StrictRedis
 from requests.auth import HTTPBasicAuth
-import collections
 import async_request
 
 from config import REDIS_URL, REDIS_DB, CHECK_SECRET, SEI_URL_BASE, SEI_ID, SEI_SECRET
@@ -112,8 +111,6 @@ class Exporter:
         self.type = type
         if self.type not in {'exam', 'cand', 'all', 'item'}:
             raise ValueError('type must be exam, cand, item, or all')
-        self.get_header_row = getattr(self, '{}_columns'.format(self.type))
-        self.get_values_row = getattr(self, '{}_values'.format(self.type))
         self.start = start
         self.end = end
 
