@@ -2,6 +2,7 @@ flask
 flask-wtf
 redis
 requests[security]
+requests_futures
 pyjwt
 eventlet
 gunicorn
