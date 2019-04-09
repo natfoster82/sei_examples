@@ -70,9 +70,9 @@ def upload_fresh_data(exam_id):
 
                     for _ in exporter.generate(get_buffer=get_buffer):
                         continue
-        zip_file.write(cand_path, cand_filename)
-        zip_file.write(exam_path, exam_filename)
-        zip_file.write(item_path, item_filename)
+            zip_file.write(cand_path, cand_filename)
+            zip_file.write(exam_path, exam_filename)
+            zip_file.write(item_path, item_filename)
         with MyFTP_TLS() as ftp:
             ftp.connect(integration_info['sftp_host'], integration_info.get('sftp_port') or 21)
             ftp.login(integration_info['sftp_user'], integration_info['sftp_password'])
