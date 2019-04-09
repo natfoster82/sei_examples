@@ -224,6 +224,9 @@ class Exporter:
         return values
 
     def item_values(self, delivery):
+        # check secret here to keep them in line
+        self.get_client_id(delivery['examinee']['info'])
+
         item_responses = delivery['item_responses']
         values = []
 
