@@ -37,6 +37,58 @@ class InvalidSecretError(Exception):
 class InvalidDeliveryError(Exception):
     pass
 
+def get_type(item_version):
+    settings = item_version['settings']
+    if settings['type'] == 'multiple_choice':
+        if settings['points'] > 1 and settings['scoring'] == 'partial':
+            return 'm'
+        return 's'
+
+def list_to_alpha(l, offset=65):
+    alpha = []
+    for index, value in enumerate(l):
+        if value:
+            letters = []
+            while index >= 0:
+                letters.append(chr(index % 25 + offset))
+                index -= 25
+            alpha.append(''.join(letters))
+    return ''.join(alpha)
+
+def response_to_alpha(item_response, item_version):
+    final = item_response.get('final')
+    content = item_version['content']
+
+    if final is None:
+        return ''
+
+    response = []
+    for index in range(len(content['options'])):
+        if index in final:
+            response.append(1)
+        else:
+            response.append(0)
+    return list_to_alpha(response)
+
+def get_status(item_response):
+    score = item_response['score']
+    if score is None or (score > 0 and score < 1):
+        return 'a'
+
+    if score == 1:
+        return 'c'
+
+    return 'i'
+
+def as_safe_string(value):
+    if value is None:
+        return ''
+
+    str_value = str(value)
+    if ',' in str_value:
+        return '"{str_value}"'.format(str_value=str_value)
+
+    return str_value
 
 class Exporter:
     all_columns = [
@@ -230,7 +282,7 @@ class Exporter:
         item_responses = delivery['item_responses']
         values = []
 
-        all_item_version_ids = [resp['item_version_id'] for resp in item_responses]
+        all_item_version_ids = [resp['item_version_id'] for resp in item_responses if resp['type'] == 'main']
         new_item_version_ids = [version_id for version_id in all_item_version_ids if version_id not in self.item_version_cache]
         ready_requests = []
 
@@ -244,27 +296,41 @@ class Exporter:
             responses_json = [item_version.json for item_version in responses]
             self.item_version_cache.update({ item_version['id']: item_version for item_version in responses_json })
 
-        for resp in item_responses:
-            item_version = self.item_version_cache[resp['item_version_id']]
+        for item_response in item_responses:
+            item_version = self.item_version_cache[item_response['item_version_id']]
             item = item_version['item']
 
-            item_response = resp
-            item_response['item'] = item
-            item_response['item_version'] = item_version
+            if item_version['settings']['type'] != 'multiple_choice':
+                continue
 
-            values.append([
-                delivery['id'],
-                item_response['item_version_name'] or '',
-                item_response['item_type'] or '',
-                str(item_response['score']) or '',
-                str(item_response['score']) or '',
-                str(item_response['seconds']) or '',
-                '"{0}"'.format(item_response.get('final') or ''),
-                '"{0}"'.format(item_response['item_version']['settings']['key']),
-                '"{0}"'.format(item_response['item']['content_area'].replace('|', ','))
-            ])
-
+            item_response['delivery_id'] = delivery['id']
+            values.append(self.item_response_values(item, item_version, item_response))
         return values
+
+    def item_response_values(self, item, item_version, item_response):
+        item_exam_id = item_response['delivery_id']
+        item_name = item_response['item_version_name']
+        item_type = get_type(item_version)
+        item_status = get_status(item_response)
+        item_score = item_response['score']
+        item_time_spent = int(round(item_response['seconds']))
+        item_response_ = response_to_alpha(item_response, item_version)
+        item_correct_answer = list_to_alpha(item_version['settings']['key'])
+        item_section = item['content_area'].replace('|', ',')
+
+        item_values = [
+            item_exam_id,
+            item_name,
+            item_type,
+            item_status,
+            item_score,
+            item_time_spent,
+            item_response_,
+            item_correct_answer,
+            item_section
+        ]
+
+        return map(as_safe_string, item_values)
 
     def all_values(self, delivery):
         return self.cand_values(delivery) + self.exam_values(delivery) + self.item_values(delivery)
