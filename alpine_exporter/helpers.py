@@ -37,7 +37,7 @@ class InvalidSecretError(Exception):
 class InvalidDeliveryError(Exception):
     pass
 
-def get_type(item_version):
+def get_item_type(item_version):
     settings = item_version['settings']
     if settings['type'] == 'multiple_choice':
         if settings['points'] > 1 and settings['scoring'] == 'partial':
@@ -55,7 +55,7 @@ def list_to_alpha(l, offset=65):
             alpha.append(''.join(letters))
     return ''.join(alpha)
 
-def response_to_alpha(item_response, item_version):
+def item_response_to_alpha(item_response, item_version):
     final = item_response.get('final')
     content = item_version['content']
 
@@ -70,7 +70,7 @@ def response_to_alpha(item_response, item_version):
             response.append(0)
     return list_to_alpha(response)
 
-def get_status(item_response):
+def get_item_status(item_response):
     score = item_response['score']
     if score is None or (score > 0 and score < 1):
         return 'a'
@@ -310,11 +310,11 @@ class Exporter:
     def item_response_values(self, item, item_version, item_response):
         item_exam_id = item_response['delivery_id']
         item_name = item_response['item_version_name']
-        item_type = get_type(item_version)
-        item_status = get_status(item_response)
+        item_type = get_item_type(item_version)
+        item_status = get_item_status(item_response)
         item_score = item_response['score']
         item_time_spent = int(round(item_response['seconds']))
-        item_response_ = response_to_alpha(item_response, item_version)
+        item_response_ = item_response_to_alpha(item_response, item_version)
         item_correct_answer = list_to_alpha(item_version['settings']['key'])
         item_section = item['content_area'].replace('|', ',')
 
