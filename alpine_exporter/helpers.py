@@ -282,7 +282,8 @@ class Exporter:
         item_responses = delivery['item_responses']
         values = []
 
-        all_item_version_ids = [resp['item_version_id'] for resp in item_responses if resp['type'] == 'main']
+        main_item_responses = [resp for resp in item_responses if resp['type'] == 'main']
+        all_item_version_ids = [resp['item_version_id'] for resp in main_item_responses]
         new_item_version_ids = [version_id for version_id in all_item_version_ids if version_id not in self.item_version_cache]
         ready_requests = []
 
@@ -296,7 +297,7 @@ class Exporter:
             responses_json = [item_version.json for item_version in responses]
             self.item_version_cache.update({ item_version['id']: item_version for item_version in responses_json })
 
-        for item_response in item_responses:
+        for item_response in main_item_responses:
             item_version = self.item_version_cache[item_response['item_version_id']]
             item = item_version['item']
 
