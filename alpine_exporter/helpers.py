@@ -154,6 +154,22 @@ class Exporter:
         'item_section'
     ]
 
+    sect_columns_ = [
+        'sect_id',
+        'sect_exam_id',
+        'sect_title',
+        'sect_grade',
+        'sect_score',
+        'sect_passing_score',
+        'sect_score_max',
+        'sect_scored',
+        'sect_items_correct',
+        'sect_items_incorrect',
+        'sect_items_skipped',
+        'sect_algorithm',
+        'sect_std_error'
+    ]
+
     split_idx = 25
     empty_cand_values = ['' for x in range(20)]
 
@@ -161,7 +177,7 @@ class Exporter:
         self.exam_id = exam_id
         self.integration_info = integration_info
         self.type = type
-        if self.type not in {'exam', 'cand', 'all', 'item'}:
+        if self.type not in {'exam', 'cand', 'all', 'item', 'sect'}:
             raise ValueError('type must be exam, cand, item, or all')
         self.start = start
         self.end = end
@@ -179,6 +195,8 @@ class Exporter:
             self.filename = 'exam-' + self.filename
         elif type == 'item':
             self.filename = 'item-' + self.filename
+        elif type == 'sect':
+            self.filename = 'sect-' + self.filename
 
         # fetch exam
         exam_url = '{0}/api/exams/{1}?only=name'.format(SEI_URL_BASE, self.exam_id)
@@ -220,6 +238,9 @@ class Exporter:
 
     def item_columns(self):
         return self.item_columns_
+    
+    def sect_columns(self):
+        return self.sect_columns_
 
     def cand_values(self, delivery):
         client_id = self.get_client_id(delivery['examinee']['info'])
@@ -333,8 +354,48 @@ class Exporter:
 
         return map(as_safe_string, item_values)
 
+    def sect_values(self, delivery):
+        # check secret here to keep them in line
+        self.get_client_id(delivery['examinee']['info'])
+
+        values = []
+        for breakdown_object in delivery['breakdown_objects']:
+            sect_id = breakdown_object['area']
+            sect_exam_id = delivery['id']
+            set_title = breakdown_object['area']
+            sect_grade = ''
+            sect_score = breakdown_object['earned']
+            sect_passing_score = ''
+            sect_score_max = breakdown_object['possible']
+            sect_scored = 1
+            sect_items_correct = ''
+            sect_items_incorrect = ''
+            sect_items_skipped = ''
+            sect_algorithm = ''
+            sect_std_error = ''
+
+            breakdown_values = [
+                sect_id,
+                sect_exam_id,
+                set_title,
+                sect_grade,
+                sect_score,
+                sect_passing_score,
+                sect_score_max,
+                sect_scored,
+                sect_items_correct,
+                sect_items_incorrect,
+                sect_items_skipped,
+                sect_algorithm,
+                sect_std_error
+            ]
+
+            values.append(map(as_safe_string, breakdown_values))
+
+        return values
+
     def all_values(self, delivery):
-        return self.cand_values(delivery) + self.exam_values(delivery) + self.item_values(delivery)
+        return self.cand_values(delivery) + self.exam_values(delivery) + self.item_values(delivery) + self.sect_values(delivery)
 
     def make_row(self, l):
         return ','.join(l) + '\r\n'
@@ -343,7 +404,7 @@ class Exporter:
         page = 0
         has_next = True
 
-        base_url = '{0}/api/exams/{1}/deliveries?status=complete&sort=modified_at&include=item_responses'.format(SEI_URL_BASE, self.exam_id)
+        base_url = '{0}/api/exams/{1}/deliveries?status=complete&sort=modified_at&include=item_responses,breakdown_objects'.format(SEI_URL_BASE, self.exam_id)
         if self.start:
             base_url += '&modified_after={0}'.format(quote_plus(self.start))
 
@@ -362,6 +423,10 @@ class Exporter:
             item_buffer = get_buffer('item')
             yield item_buffer.write(self.make_row(self.item_columns()))
 
+        if self.type == 'all' or self.type == 'sect':
+            sect_buffer = get_buffer('sect')
+            yield sect_buffer.write(self.make_row(self.sect_columns()))
+
         while has_next:
             page += 1
             url = base_url + '&page={0}'.format(str(page))
@@ -379,6 +444,10 @@ class Exporter:
                     if self.type == 'all' or self.type == 'item':
                         for response_row in self.item_values(delivery):
                             yield item_buffer.write(self.make_row(response_row))
+                    
+                    if self.type == 'all' or self.type == 'sect':
+                        for sect_row in self.sect_values(delivery):
+                            yield sect_buffer.write(self.make_row(sect_row))
                 except (InvalidSecretError, InvalidDeliveryError):
                     continue
                 self.last_timestamp = delivery['modified_at']

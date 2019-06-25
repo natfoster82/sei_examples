@@ -46,18 +46,21 @@ def upload_fresh_data(exam_id):
     cand_filename = 'cand-' + exporter.filename
     exam_filename = 'exam-' + exporter.filename
     item_filename = 'item-' + exporter.filename
+    sect_filename = 'sect-' + exporter.filename
     zip_filename = exam_id + '-' + exporter.filename.split('.')[0] + '.zip'
 
     with TemporaryDirectory() as tempdirname:
         cand_path = '{0}/{1}'.format(tempdirname, cand_filename)
         exam_path = '{0}/{1}'.format(tempdirname, exam_filename)
         item_path = '{0}/{1}'.format(tempdirname, item_filename)
+        sect_path = '{0}/{1}'.format(tempdirname, sect_filename)
         zip_path = '{0}/{1}'.format(tempdirname, zip_filename)
         with ZipFile(zip_path, 'w') as zip_file:
             with \
                 codecs.open(cand_path, 'w', encoding='utf-8-sig') as cand_file, \
                 codecs.open(exam_path, 'w', encoding='utf-8-sig') as exam_file, \
-                codecs.open(item_path, 'w', encoding='utf-8-sig') as item_file:
+                codecs.open(item_path, 'w', encoding='utf-8-sig') as item_file, \
+                codecs.open(sect_path, 'w', encoding='utf-8-sig') as sect_file:
                     def get_buffer(row_type):
                         if row_type == 'cand':
                             return cand_file
@@ -67,12 +70,16 @@ def upload_fresh_data(exam_id):
                         
                         if row_type == 'item':
                             return item_file
+                        
+                        if row_type == 'sect':
+                            return sect_file
 
                     for _ in exporter.generate(get_buffer=get_buffer):
                         continue
             zip_file.write(cand_path, cand_filename)
             zip_file.write(exam_path, exam_filename)
             zip_file.write(item_path, item_filename)
+            zip_file.write(sect_path, sect_filename)
         with MyFTP_TLS() as ftp:
             ftp.connect(integration_info['sftp_host'], integration_info.get('sftp_port') or 21)
             ftp.login(integration_info['sftp_user'], integration_info['sftp_password'])
