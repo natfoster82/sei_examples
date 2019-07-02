@@ -3,6 +3,7 @@ import ftplib
 from datetime import datetime
 from json import loads, dumps
 from urllib.parse import quote_plus
+import collections
 
 import jwt
 import requests
@@ -154,6 +155,22 @@ class Exporter:
         'item_section'
     ]
 
+    sect_columns_ = [
+        'sect_id',
+        'sect_exam_id',
+        'sect_title',
+        'sect_grade',
+        'sect_score',
+        'sect_passing_score',
+        'sect_score_max',
+        'sect_scored',
+        'sect_items_correct',
+        'sect_items_incorrect',
+        'sect_items_skipped',
+        'sect_algorithm',
+        'sect_std_error'
+    ]
+
     split_idx = 25
     empty_cand_values = ['' for x in range(20)]
 
@@ -161,7 +178,7 @@ class Exporter:
         self.exam_id = exam_id
         self.integration_info = integration_info
         self.type = type
-        if self.type not in {'exam', 'cand', 'all', 'item'}:
+        if self.type not in {'exam', 'cand', 'all', 'item', 'sect'}:
             raise ValueError('type must be exam, cand, item, or all')
         self.start = start
         self.end = end
@@ -179,6 +196,8 @@ class Exporter:
             self.filename = 'exam-' + self.filename
         elif type == 'item':
             self.filename = 'item-' + self.filename
+        elif type == 'sect':
+            self.filename = 'sect-' + self.filename
 
         # fetch exam
         exam_url = '{0}/api/exams/{1}?only=name'.format(SEI_URL_BASE, self.exam_id)
@@ -220,6 +239,9 @@ class Exporter:
 
     def item_columns(self):
         return self.item_columns_
+    
+    def sect_columns(self):
+        return self.sect_columns_
 
     def cand_values(self, delivery):
         client_id = self.get_client_id(delivery['examinee']['info'])
@@ -280,22 +302,9 @@ class Exporter:
         self.get_client_id(delivery['examinee']['info'])
 
         item_responses = delivery['item_responses']
-        values = []
-
         main_item_responses = [resp for resp in item_responses if resp['type'] == 'main']
-        all_item_version_ids = [resp['item_version_id'] for resp in main_item_responses]
-        new_item_version_ids = [version_id for version_id in all_item_version_ids if version_id not in self.item_version_cache]
-        ready_requests = []
-
-        for item_version_id in new_item_version_ids:
-            url = '{sei_url_base}/api/exams/{exam_id}/item_versions/{item_version_id}?include=item'\
-                .format(sei_url_base=SEI_URL_BASE, exam_id=self.exam_id, item_version_id=item_version_id)
-            ready_requests.append(url)
-
-        if len(ready_requests) > 0:
-            responses = async_request.map({ 'headers': self.headers }, ready_requests)
-            responses_json = [item_version.json for item_version in responses]
-            self.item_version_cache.update({ item_version['id']: item_version for item_version in responses_json })
+        self.populate_item_version_cache(main_item_responses)
+        values = []
 
         for item_response in main_item_responses:
             item_version = self.item_version_cache[item_response['item_version_id']]
@@ -333,8 +342,91 @@ class Exporter:
 
         return map(as_safe_string, item_values)
 
+    def sect_values(self, delivery):
+        # check secret here to keep them in line
+        self.get_client_id(delivery['examinee']['info'])
+
+        item_responses = delivery['item_responses']
+        main_item_responses = [resp for resp in item_responses if resp['type'] == 'main']
+        self.populate_item_version_cache(main_item_responses)
+        
+        content_area_correct = collections.Counter()
+        content_area_incorrect = collections.Counter()
+        content_area_skipped = collections.Counter()
+
+        for item_response in main_item_responses:
+            item_version = self.item_version_cache[item_response['item_version_id']]
+            item = item_version['item']
+
+            if item_version['settings']['type'] != 'multiple_choice':
+                continue
+
+            content_area = item['content_area']
+            if item_response.get('final', None) is None or len(item_response.get('final')) == 0:
+                content_area_skipped[content_area] += 1
+                continue
+
+            if item_response['score'] > 0:
+                content_area_correct[content_area] += 1
+            else:
+                content_area_incorrect[content_area] += 1
+
+        response_content_areas = set(list(content_area_correct) + list(content_area_incorrect) + list(content_area_skipped))
+        breakdown_objects = [ breakdown_object for breakdown_object in delivery['breakdown_objects'] if breakdown_object['area'] in response_content_areas ]
+
+        values = []
+        for breakdown_object in breakdown_objects:
+            sect_id = breakdown_object['area'].replace('|', ',')
+            sect_exam_id = delivery['id']
+            set_title = breakdown_object['area'].replace('|', ',')
+            sect_grade = ''
+            sect_score = breakdown_object['earned']
+            sect_passing_score = ''
+            sect_score_max = breakdown_object['possible']
+            sect_scored = 1
+            sect_items_correct = content_area_correct[breakdown_object['area']]
+            sect_items_incorrect = content_area_incorrect[breakdown_object['area']]
+            sect_items_skipped = content_area_skipped[breakdown_object['area']]
+            sect_algorithm = ''
+            sect_std_error = ''
+
+            breakdown_values = [
+                sect_id,
+                sect_exam_id,
+                set_title,
+                sect_grade,
+                sect_score,
+                sect_passing_score,
+                sect_score_max,
+                sect_scored,
+                sect_items_correct,
+                sect_items_incorrect,
+                sect_items_skipped,
+                sect_algorithm,
+                sect_std_error
+            ]
+
+            values.append(map(as_safe_string, breakdown_values))
+
+        return values
+
+    def populate_item_version_cache(self, item_responses):
+        all_item_version_ids = [resp['item_version_id'] for resp in item_responses]
+        new_item_version_ids = [version_id for version_id in all_item_version_ids if version_id not in self.item_version_cache]
+        ready_requests = []
+
+        for item_version_id in new_item_version_ids:
+            url = '{sei_url_base}/api/exams/{exam_id}/item_versions/{item_version_id}?include=item'\
+                .format(sei_url_base=SEI_URL_BASE, exam_id=self.exam_id, item_version_id=item_version_id)
+            ready_requests.append(url)
+
+        if len(ready_requests) > 0:
+            responses = async_request.map({ 'headers': self.headers }, ready_requests)
+            responses_json = [item_version.json for item_version in responses]
+            self.item_version_cache.update({ item_version['id']: item_version for item_version in responses_json })
+
     def all_values(self, delivery):
-        return self.cand_values(delivery) + self.exam_values(delivery) + self.item_values(delivery)
+        return self.cand_values(delivery) + self.exam_values(delivery) + self.item_values(delivery) + self.sect_values(delivery)
 
     def make_row(self, l):
         return ','.join(l) + '\r\n'
@@ -343,7 +435,7 @@ class Exporter:
         page = 0
         has_next = True
 
-        base_url = '{0}/api/exams/{1}/deliveries?status=complete&sort=modified_at&include=item_responses'.format(SEI_URL_BASE, self.exam_id)
+        base_url = '{0}/api/exams/{1}/deliveries?status=complete&sort=modified_at&include=item_responses,breakdown_objects'.format(SEI_URL_BASE, self.exam_id)
         if self.start:
             base_url += '&modified_after={0}'.format(quote_plus(self.start))
 
@@ -362,6 +454,10 @@ class Exporter:
             item_buffer = get_buffer('item')
             yield item_buffer.write(self.make_row(self.item_columns()))
 
+        if self.type == 'all' or self.type == 'sect':
+            sect_buffer = get_buffer('sect')
+            yield sect_buffer.write(self.make_row(self.sect_columns()))
+
         while has_next:
             page += 1
             url = base_url + '&page={0}'.format(str(page))
@@ -379,6 +475,10 @@ class Exporter:
                     if self.type == 'all' or self.type == 'item':
                         for response_row in self.item_values(delivery):
                             yield item_buffer.write(self.make_row(response_row))
+                    
+                    if self.type == 'all' or self.type == 'sect':
+                        for sect_row in self.sect_values(delivery):
+                            yield sect_buffer.write(self.make_row(sect_row))
                 except (InvalidSecretError, InvalidDeliveryError):
                     continue
                 self.last_timestamp = delivery['modified_at']
