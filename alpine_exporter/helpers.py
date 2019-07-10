@@ -17,6 +17,12 @@ from config import REDIS_URL, REDIS_DB, CHECK_SECRET, SEI_URL_BASE, SEI_ID, SEI_
 redis_store = StrictRedis.from_url(REDIS_URL, db=REDIS_DB, decode_responses=True)
 rq_store = StrictRedis.from_url(REDIS_URL, db=REDIS_DB)
 
+SCORPION_SECTION = 0
+SCORPION_OBJECTIVE = 1
+SCORPION_SPLIT_CHAR = '|'
+
+def extract_section(content_area):
+    return content_area.split(SCORPION_SPLIT_CHAR)[SCORPION_SECTION] or ''
 
 def get_integration_info(exam_id):
     data = redis_store.get(exam_id)
@@ -326,7 +332,7 @@ class Exporter:
         item_time_spent = int(round(item_response['seconds']))
         item_response_ = item_response_to_alpha(item_response, item_version)
         item_correct_answer = list_to_alpha(item_version['settings']['key'])
-        item_section = item['content_area'].replace('|', ',')
+        item_section = extract_section(item['content_area'])
 
         item_values = [
             item_exam_id,
@@ -361,7 +367,7 @@ class Exporter:
             if item_version['settings']['type'] != 'multiple_choice':
                 continue
 
-            content_area = item['content_area']
+            content_area = extract_section(item['content_area'])
             if item_response.get('final', None) is None or len(item_response.get('final')) == 0:
                 content_area_skipped[content_area] += 1
                 continue
@@ -372,21 +378,23 @@ class Exporter:
                 content_area_incorrect[content_area] += 1
 
         response_content_areas = set(list(content_area_correct) + list(content_area_incorrect) + list(content_area_skipped))
-        breakdown_objects = [ breakdown_object for breakdown_object in delivery['breakdown_objects'] if breakdown_object['area'] in response_content_areas ]
+        breakdown_objects = [ breakdown_object for breakdown_object in delivery['breakdown_objects'] if extract_section(breakdown_object['area']) in response_content_areas ]
 
         values = []
         for breakdown_object in breakdown_objects:
-            sect_id = breakdown_object['area'].replace('|', ',')
+            content_area = extract_section(breakdown_object['area'])
+
+            sect_id = content_area
             sect_exam_id = delivery['id']
-            set_title = breakdown_object['area'].replace('|', ',')
+            set_title = content_area
             sect_grade = ''
             sect_score = breakdown_object['earned']
             sect_passing_score = ''
             sect_score_max = breakdown_object['possible']
             sect_scored = 1
-            sect_items_correct = content_area_correct[breakdown_object['area']]
-            sect_items_incorrect = content_area_incorrect[breakdown_object['area']]
-            sect_items_skipped = content_area_skipped[breakdown_object['area']]
+            sect_items_correct = content_area_correct[content_area]
+            sect_items_incorrect = content_area_incorrect[content_area]
+            sect_items_skipped = content_area_skipped[content_area]
             sect_algorithm = ''
             sect_std_error = ''
 
