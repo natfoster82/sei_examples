@@ -399,9 +399,9 @@ class Exporter:
             sect_std_error = ''
 
             breakdown_values = [
-                sect_id,
-                sect_exam_id,
-                set_title,
+                sect_id[:50],
+                sect_exam_id[:50],
+                set_title[:256],
                 sect_grade,
                 sect_score,
                 sect_passing_score,
