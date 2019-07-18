@@ -343,7 +343,7 @@ class Exporter:
             item_time_spent,
             item_response_,
             item_correct_answer,
-            '{0}...'.format(item_section[:46])
+            '{0}...'.format(item_section[:47]) if len(item_section) > 50 else item_section
         ]
 
         return map(as_safe_string, item_values)
@@ -399,9 +399,9 @@ class Exporter:
             sect_std_error = ''
 
             breakdown_values = [
-                '{0}...'.format(sect_id[:46]),
-                '{0}...'.format(sect_exam_id[:46]),
-                '{0}...'.format(sect_title[:252]),
+                '{0}...'.format(sect_id[:47]) if len(sect_id) > 50 else sect_id,
+                '{0}...'.format(sect_exam_id[:47]) if len(sect_exam_id) > 50 else sect_exam_id,
+                '{0}...'.format(sect_title[:253]) if len(sect_title) > 256 else sect_title,
                 sect_grade,
                 sect_score,
                 sect_passing_score,
