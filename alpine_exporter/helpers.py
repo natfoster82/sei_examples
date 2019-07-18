@@ -386,7 +386,7 @@ class Exporter:
 
             sect_id = content_area
             sect_exam_id = delivery['id']
-            set_title = content_area
+            sect_title = content_area
             sect_grade = ''
             sect_score = breakdown_object['earned']
             sect_passing_score = ''
@@ -401,7 +401,7 @@ class Exporter:
             breakdown_values = [
                 sect_id[:50],
                 sect_exam_id[:50],
-                set_title[:256],
+                sect_title[:256],
                 sect_grade,
                 sect_score,
                 sect_passing_score,
