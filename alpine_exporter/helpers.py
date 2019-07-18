@@ -343,7 +343,7 @@ class Exporter:
             item_time_spent,
             item_response_,
             item_correct_answer,
-            item_section
+            '{0}...'.format(item_section[:46])
         ]
 
         return map(as_safe_string, item_values)
@@ -399,9 +399,9 @@ class Exporter:
             sect_std_error = ''
 
             breakdown_values = [
-                sect_id[:50],
-                sect_exam_id[:50],
-                sect_title[:256],
+                '{0}...'.format(sect_id[:46]),
+                '{0}...'.format(sect_exam_id[:46]),
+                '{0}...'.format(sect_title[:252]),
                 sect_grade,
                 sect_score,
                 sect_passing_score,
