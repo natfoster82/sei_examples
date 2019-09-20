@@ -14,6 +14,15 @@ custom:
     dev: https://apiuatapi.psiexams.com
     stage: ${secrets:PSI_URL_BASE}
     prod: ${secrets:PSI_URL_BASE}
+  SLACK_WEBHOOK_URL:
+    dev: ${secrets:SLACK_WEBHOOK_URL}
+    stage: ${secrets:SLACK_WEBHOOK_URL}
+    prod: ${secrets:SLACK_WEBHOOK_URL}
+  SLACK_CHANNEL:
+    dev: ${secrets:SLACK_CHANNEL}
+    stage: ${secrets:SLACK_CHANNEL}
+    prod: ${secrets:SLACK_CHANNEL}
+
 
 provider:
   name: aws
@@ -22,6 +31,8 @@ provider:
   environment:
     SEI_URL_BASE: ${self:custom.SEI_URL_BASE.${self:provider.stage}}
     PSI_URL_BASE: ${self:custom.PSI_URL_BASE.${self:provider.stage}}
+    SLACK_WEBHOOK_URL: ${self:custom.SLACK_WEBHOOK_URL.${self:provider.stage}}
+    SLACK_CHANNEL: ${self:custom.SLACK_CHANNEL.${self:provider.stage}}
 
 functions:
   handle_sei_event:
