@@ -1,0 +1,31 @@
+service: hpe-connector
+# app and org for use with dashboard.serverless.com
+app: hpe-connector
+org: natfoster
+
+custom:
+  pythonRequirements:
+    dockerizePip: true
+  SEI_URL_BASE:
+    dev: https://sei-stage.herokuapp.com
+    stage: ${secrets:SEI_URL_BASE}
+    prod: ${secrets:SEI_URL_BASE}
+  PSI_URL_BASE:
+    dev: https://apiuatapi.psiexams.com
+    stage: ${secrets:PSI_URL_BASE}
+    prod: ${secrets:PSI_URL_BASE}
+
+provider:
+  name: aws
+  runtime: python3.7
+  stage: ${opt:stage,'dev'}
+  environment:
+    SEI_URL_BASE: ${self:custom.SEI_URL_BASE.${self:provider.stage}}
+    PSI_URL_BASE: ${self:custom.PSI_URL_BASE.${self:provider.stage}}
+
+functions:
+  handle_sei_event:
+    handler: handler.handle_sei_event
+
+plugins:
+  - serverless-python-requirements
