@@ -3,6 +3,7 @@
   "path": "/connectors/hpe",
   "httpMethod": "POST",
   "headers": {
+    "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.zAVpP4os04UAWmjYNpKWdIuFxN-JyiFk1W84tC5npwY",
     "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3",
     "accept-encoding": "gzip, deflate, br",
     "accept-language": "en-US,en;q=0.9",

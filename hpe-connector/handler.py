@@ -1,25 +1,42 @@
 import json
 import os
 
+import boto3
+import jwt
 import requests
 
 
-CREDENTIALS = {
-    'b3643010-ebaa-4f62-b968-345c58f43d2d': {
-        'token': 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJTRUkiLCJzdWIiOiJkZDdhYTc3Yi03Mzg0LTRhOWQtYjE2Yy04ODk0OWFiOTM0YmEiLCJpYXQiOjE1Njg5MzUxMzAsInR5cGUiOiJpbnRlZ3JhdGlvbiJ9.JhnsHytE3yG_RBS07lTQDJ9boW_xx5tQXM6tOlUijJg',
-        'secret': 'a5bc6d4d0acef38b6bd27e9bad031b63'
-    }
-}
+s3 = boto3.client('s3')
+
+
+def authorize_sei_event(auth_header, secret):
+    token = auth_header.split()[1]
+    try:
+        jwt.decode(token, secret, algorithms=['HS256'])
+        return True
+    except jwt.exceptions.InvalidTokenError:
+        return False
 
 
 def handle_sei_event(event, context):
     body = event['body']
     exam_id = body['exam_id']
-    if exam_id not in CREDENTIALS:
-        raise ValueError('No exam with that ID')
+    headers = event['headers']
+    credentials = get_credentials_dict()
+    exam_credentials = credentials[exam_id]
+    secret = exam_credentials['secret']
+
+    if not authorize_sei_event(headers['Authorization'], secret):
+        response = {
+            'statusCode': 403,
+            'body': '{}'
+        }
+        return response
+
+    token = exam_credentials['token']
 
     delivery_id = body['delivery_id']
-    delivery_json = get_delivery_json(exam_id, delivery_id)
+    delivery_json = get_delivery_json(exam_id, delivery_id, token)
 
     psi_response = send_to_psi(delivery_json)
     saba_response = send_to_saba(delivery_json)
@@ -34,10 +51,15 @@ def handle_sei_event(event, context):
     return response
 
 
-def get_delivery_json(exam_id, delivery_id):
+def get_credentials_dict():
+    data = s3.get_object(Bucket='caveon-private', Key='hpe_creds.json')
+    return json.loads(data['Body'].read())
+
+
+def get_delivery_json(exam_id, delivery_id, token):
     delivery_url = '{0}/api/exams/{1}/deliveries/{2}?include=exam'.format(os.environ['SEI_URL_BASE'], exam_id,
                                                                           delivery_id)
-    delivery_headers = {'Authorization': 'Bearer {0}'.format(CREDENTIALS[exam_id]['token'])}
+    delivery_headers = {'Authorization': 'Bearer {0}'.format(token)}
     delivery_response = requests.get(delivery_url, headers=delivery_headers)
     return delivery_response.json()
 
