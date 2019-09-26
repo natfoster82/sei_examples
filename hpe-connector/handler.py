@@ -38,10 +38,12 @@ def handle_sei_event(event, context):
     delivery_id = body['delivery_id']
     delivery_json = get_delivery_json(exam_id, delivery_id, token)
 
+    # TODO: run these in parallel
     psi_response = send_to_psi(delivery_json)
     saba_response = send_to_saba(delivery_json)
+    ip_response = check_ip()
 
-    send_to_slack(delivery_json, psi_response, saba_response)
+    send_to_slack(delivery_json, psi_response, saba_response, ip_response)
 
     response = {
         'statusCode': 200,
@@ -82,7 +84,12 @@ def send_to_saba(delivery_json):
     return {'Status Code': None}
 
 
-def send_to_slack(delivery_json, psi_response, saba_response):
+def check_ip():
+    r = requests.get('https://api.ipify.org?format=json')
+    return r.json()
+
+
+def send_to_slack(delivery_json, psi_response, saba_response, ip_response):
     webhook_url = os.environ.get('SLACK_WEBHOOK_URL')
     if webhook_url:
         channel = os.environ.get('SLACK_CHANNEL', '#dev')
@@ -106,12 +113,13 @@ def send_to_slack(delivery_json, psi_response, saba_response):
         delivery_attachment = format_attachment('Delivery Info', delivery_info)
         psi_attachment = format_attachment('PSI Status', psi_response)
         saba_attachment = format_attachment('SABA Status', saba_response)
+        ip_attachment = format_attachment('Connector IP', ip_response)
 
         slack_payload = {
             'username': 'HPE Connector',
             'icon_emoji': ':owl:',
             'channel': channel,
-            'attachments': [examinee_attachment, delivery_attachment, psi_attachment, saba_attachment]
+            'attachments': [examinee_attachment, delivery_attachment, psi_attachment, saba_attachment, ip_attachment]
         }
         requests.post(webhook_url, json=slack_payload)
 
