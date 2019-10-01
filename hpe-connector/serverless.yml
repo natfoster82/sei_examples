@@ -37,6 +37,8 @@ provider:
 functions:
   handle_sei_event:
     handler: handler.handle_sei_event
+  handle_delivery_widget:
+    handler: handler.handle_delivery_widget
 
 plugins:
   - serverless-python-requirements

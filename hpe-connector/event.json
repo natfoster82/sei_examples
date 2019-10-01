@@ -59,7 +59,11 @@
       "https"
     ]
   },
-  "queryStringParameters": null,
+  "queryStringParameters": {
+    "exam_id": "b3643010-ebaa-4f62-b968-345c58f43d2d",
+    "delivery_id": "35a2385e-eb54-4611-83b8-0a7258cb4d8e",
+    "jwt": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.zAVpP4os04UAWmjYNpKWdIuFxN-JyiFk1W84tC5npwY"
+  },
   "multiValueQueryStringParameters": null,
   "pathParameters": null,
   "stageVariables": null,

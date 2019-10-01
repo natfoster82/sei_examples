@@ -4,19 +4,15 @@ import os
 import boto3
 import jwt
 import requests
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 from requests.auth import HTTPBasicAuth
 
 
 s3 = boto3.client('s3')
-
-
-def authorize_sei_event(auth_header, secret):
-    token = auth_header.split()[1]
-    try:
-        jwt.decode(token, secret, algorithms=['HS256'])
-        return True
-    except jwt.exceptions.InvalidTokenError:
-        return False
+env = Environment(
+    loader=FileSystemLoader('templates'),
+    autoescape=select_autoescape(['html', 'xml'])
+)
 
 
 def handle_sei_event(event, context):
@@ -26,8 +22,10 @@ def handle_sei_event(event, context):
     credentials = get_credentials_dict()
     exam_credentials = credentials[exam_id]
     secret = exam_credentials['secret']
+    auth_header = headers['Authorization']
+    token = auth_header.split()[1]
 
-    if not authorize_sei_event(headers['Authorization'], secret):
+    if not authorize_sei_event(token, secret):
         response = {
             'statusCode': 403,
             'body': '{}'
@@ -52,6 +50,43 @@ def handle_sei_event(event, context):
     }
 
     return response
+
+
+def handle_delivery_widget(event, context):
+    args = event['queryStringParameters']
+    exam_id = args['exam_id']
+    delivery_id = args['delivery_id']
+    token = args['jwt']
+    credentials = get_credentials_dict()
+    exam_credentials = credentials[exam_id]
+    secret = exam_credentials['secret']
+
+    if not authorize_sei_event(token, secret):
+        response = {
+            'statusCode': 403,
+            'body': '{}'
+        }
+        return response
+
+    template = env.get_template('delivery_widget.html')
+    content = template.render(exam_id=exam_id, delivery_id=delivery_id, token=token)
+
+    response = {
+        'statusCode': 200,
+        'body': content,
+        'headers': {
+            'Content-Type': 'text/html',
+        }
+    }
+    return response
+
+
+def authorize_sei_event(token, secret):
+    try:
+        jwt.decode(token, secret, algorithms=['HS256'])
+        return True
+    except jwt.exceptions.InvalidTokenError:
+        return False
 
 
 def get_credentials_dict():
@@ -149,3 +184,6 @@ def format_attachment(title, data):
         ]
     }
     return attachment
+
+
+
