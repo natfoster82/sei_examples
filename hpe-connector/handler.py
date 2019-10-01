@@ -4,6 +4,7 @@ import os
 import boto3
 import jwt
 import requests
+from requests.auth import HTTPBasicAuth
 
 
 s3 = boto3.client('s3')
@@ -66,6 +67,17 @@ def get_delivery_json(exam_id, delivery_id, token):
     return delivery_response.json()
 
 
+def get_psi_token():
+    url = '{}/token'.format(os.environ['PSI_URL_BASE'])
+    data = {
+        'grant_type': 'password',
+        'username': os.environ.get('PSI_USERNAME', 'caveon'),
+        'password': os.environ['PSI_PASSWORD']
+    }
+    response = requests.post(url=url, data=data, auth=HTTPBasicAuth(username=os.environ['PSI_CONSUMER_KEY'], password=os.environ['PSI_CONSUMER_SECRET']))
+    return response.json()['access_token']
+
+
 def send_to_psi(delivery_json):
     examinee_info = delivery_json['examinee']['info']
     booking_code = examinee_info.get('bookingcode')
@@ -76,7 +88,11 @@ def send_to_psi(delivery_json):
       'score': score
     }
     url = '{}/assessmentResultService/1.0.0/bookings/{}/results'.format(os.environ['PSI_URL_BASE'], booking_code)
-    r = requests.put(url, json=payload)
+    psi_token = get_psi_token()
+    headers = {
+        'Authorization': 'Bearer {}'.format(psi_token)
+    }
+    r = requests.put(url, json=payload, headers=headers)
     return {'Status Code': r.status_code}
 
 
