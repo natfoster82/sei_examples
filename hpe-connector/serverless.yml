@@ -22,7 +22,18 @@ custom:
     dev: ${secrets:SLACK_CHANNEL}
     stage: ${secrets:SLACK_CHANNEL}
     prod: ${secrets:SLACK_CHANNEL}
-
+  PSI_PASSWORD:
+    dev: ${secrets:PSI_PASSWORD}
+    stage: ${secrets:PSI_PASSWORD}
+    prod: ${secrets:PSI_PASSWORD}
+  PSI_CONSUMER_KEY:
+    dev: ${secrets:PSI_CONSUMER_KEY}
+    stage: ${secrets:PSI_CONSUMER_KEY}
+    prod: ${secrets:PSI_CONSUMER_KEY}
+  PSI_CONSUMER_SECRET:
+    dev: ${secrets:PSI_CONSUMER_SECRET}
+    stage: ${secrets:PSI_CONSUMER_SECRET}
+    prod: ${secrets:PSI_CONSUMER_SECRET}
 
 provider:
   name: aws
@@ -33,6 +44,9 @@ provider:
     PSI_URL_BASE: ${self:custom.PSI_URL_BASE.${self:provider.stage}}
     SLACK_WEBHOOK_URL: ${self:custom.SLACK_WEBHOOK_URL.${self:provider.stage}}
     SLACK_CHANNEL: ${self:custom.SLACK_CHANNEL.${self:provider.stage}}
+    PSI_PASSWORD: ${self:custom.PSI_PASSWORD.${self:provider.stage}}
+    PSI_CONSUMER_KEY: ${self:custom.PSI_CONSUMER_KEY.${self:provider.stage}}
+    PSI_CONSUMER_SECRET: ${self:custom.PSI_CONSUMER_SECRET.${self:provider.stage}}
 
 functions:
   handle_sei_event:
