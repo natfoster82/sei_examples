@@ -46,7 +46,7 @@
             var btn = document.getElementById('submit_btn');
             btn.disabled = true;
             btn.innerText = 'Sending request';
-            var url = '/connectors/hpe';
+            var url = '/{{ stage }}/connectors/hpe';
             var payload = {
                 exam_id: {{ exam_id|tojson }},
                 delivery_id: {{ delivery_id|tojson }},

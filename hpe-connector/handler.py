@@ -57,6 +57,7 @@ def handle_delivery_widget(event, context):
     exam_id = args['exam_id']
     delivery_id = args['delivery_id']
     token = args['jwt']
+    stage = os.environ['STAGE']
     credentials = get_credentials_dict()
     exam_credentials = credentials[exam_id]
     secret = exam_credentials['secret']
@@ -69,7 +70,7 @@ def handle_delivery_widget(event, context):
         return response
 
     template = env.get_template('delivery_widget.html')
-    content = template.render(exam_id=exam_id, delivery_id=delivery_id, token=token)
+    content = template.render(exam_id=exam_id, delivery_id=delivery_id, token=token, stage=stage)
 
     response = {
         'statusCode': 200,

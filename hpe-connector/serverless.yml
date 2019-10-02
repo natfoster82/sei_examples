@@ -40,6 +40,7 @@ provider:
   runtime: python3.7
   stage: ${opt:stage,'dev'}
   environment:
+    STAGE: ${opt:stage,'dev'}
     SEI_URL_BASE: ${self:custom.SEI_URL_BASE.${self:provider.stage}}
     PSI_URL_BASE: ${self:custom.PSI_URL_BASE.${self:provider.stage}}
     SLACK_WEBHOOK_URL: ${self:custom.SLACK_WEBHOOK_URL.${self:provider.stage}}
