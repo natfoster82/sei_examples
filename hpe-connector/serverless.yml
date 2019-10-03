@@ -6,34 +6,6 @@ org: natfoster
 custom:
   pythonRequirements:
     dockerizePip: true
-  SEI_URL_BASE:
-    dev: https://sei-stage.herokuapp.com
-    stage: ${secrets:SEI_URL_BASE}
-    prod: ${secrets:SEI_URL_BASE}
-  PSI_URL_BASE:
-    dev: https://apiuatapi.psiexams.com
-    stage: ${secrets:PSI_URL_BASE}
-    prod: ${secrets:PSI_URL_BASE}
-  SLACK_WEBHOOK_URL:
-    dev: ${secrets:SLACK_WEBHOOK_URL}
-    stage: ${secrets:SLACK_WEBHOOK_URL}
-    prod: ${secrets:SLACK_WEBHOOK_URL}
-  SLACK_CHANNEL:
-    dev: ${secrets:SLACK_CHANNEL}
-    stage: ${secrets:SLACK_CHANNEL}
-    prod: ${secrets:SLACK_CHANNEL}
-  PSI_PASSWORD:
-    dev: ${secrets:PSI_PASSWORD}
-    stage: ${secrets:PSI_PASSWORD}
-    prod: ${secrets:PSI_PASSWORD}
-  PSI_CONSUMER_KEY:
-    dev: ${secrets:PSI_CONSUMER_KEY}
-    stage: ${secrets:PSI_CONSUMER_KEY}
-    prod: ${secrets:PSI_CONSUMER_KEY}
-  PSI_CONSUMER_SECRET:
-    dev: ${secrets:PSI_CONSUMER_SECRET}
-    stage: ${secrets:PSI_CONSUMER_SECRET}
-    prod: ${secrets:PSI_CONSUMER_SECRET}
 
 provider:
   name: aws
@@ -41,19 +13,31 @@ provider:
   stage: ${opt:stage,'dev'}
   environment:
     STAGE: ${opt:stage,'dev'}
-    SEI_URL_BASE: ${self:custom.SEI_URL_BASE.${self:provider.stage}}
-    PSI_URL_BASE: ${self:custom.PSI_URL_BASE.${self:provider.stage}}
-    SLACK_WEBHOOK_URL: ${self:custom.SLACK_WEBHOOK_URL.${self:provider.stage}}
-    SLACK_CHANNEL: ${self:custom.SLACK_CHANNEL.${self:provider.stage}}
-    PSI_PASSWORD: ${self:custom.PSI_PASSWORD.${self:provider.stage}}
-    PSI_CONSUMER_KEY: ${self:custom.PSI_CONSUMER_KEY.${self:provider.stage}}
-    PSI_CONSUMER_SECRET: ${self:custom.PSI_CONSUMER_SECRET.${self:provider.stage}}
+    SEI_URL_BASE: ${secrets:SEI_URL_BASE}
+    PSI_URL_BASE: ${secrets:PSI_URL_BASE}
+    SLACK_WEBHOOK_URL: ${secrets:SLACK_WEBHOOK_URL}
+    SLACK_CHANNEL: ${secrets:SLACK_CHANNEL}
+    PSI_PASSWORD: ${secrets:PSI_PASSWORD}
+    PSI_CONSUMER_KEY: ${secrets:PSI_CONSUMER_KEY}
+    PSI_CONSUMER_SECRET: ${secrets:PSI_CONSUMER_SECRET}
 
 functions:
   handle_sei_event:
     handler: handler.handle_sei_event
+    vpc:
+      securityGroupIds:
+        - ${secrets:SECURITY_GROUP_ID}
+      subnetIds:
+        - ${secrets:SUBNET_ID_1}
+        - ${secrets:SUBNET_ID_2}
   handle_delivery_widget:
     handler: handler.handle_delivery_widget
+    vpc:
+      securityGroupIds:
+        - ${secrets:SECURITY_GROUP_ID}
+      subnetIds:
+        - ${secrets:SUBNET_ID_1}
+        - ${secrets:SUBNET_ID_2}
 
 plugins:
   - serverless-python-requirements

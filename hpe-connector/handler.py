@@ -16,7 +16,7 @@ env = Environment(
 
 
 def handle_sei_event(event, context):
-    body = event['body']
+    body = json.loads(event['body'])
     exam_id = body['exam_id']
     headers = event['headers']
     credentials = get_credentials_dict()
