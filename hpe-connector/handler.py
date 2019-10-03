@@ -91,7 +91,8 @@ def authorize_sei_event(token, secret):
 
 
 def get_credentials_dict():
-    data = s3.get_object(Bucket='caveon-private', Key='hpe_creds.json')
+    key = 'hpe/{}/creds.json'.format(os.environ['STAGE'])
+    data = s3.get_object(Bucket='caveon-private', Key=key)
     return json.loads(data['Body'].read())
 
 
