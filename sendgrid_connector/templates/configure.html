@@ -235,24 +235,25 @@
                                     </select>
                                 </div>
                                 <div>
-                                    <label for='sendGridSender'>Select a SendGrid sender for this email:</label>
-                                    <select name="sendGridSender" v-model="config.sender_id">
-                                        <option value=""></option>
-                                        <option v-for="sender in senders" v-bind:value="sender.id">{{ sender.from.name }} - {{ sender.from.email}}</option>
-                                    </select>
+                                    <label for='senderName'>Add your sender name:</label>
+                                    <input name="senderName" type="text" v-model="config.sender_name">
+                                </div>
+                                <div>
+                                    <label for='senderEmail'>Add sender email address:</label>
+                                    <input name=senderEmail type="text" v-model="config.sender_email">
                                 </div>
                                 <div class="row mapping">
                                     <div class="leftCol">
                                         <h4>Enter the recipient name and email:</h4>
                                         <h5>Enter fields from the SEI examinee schema to send these emails to the examinees.</h5>
                                         <div>
-                                            <label for='recipientName'>Add recipient name field:
+                                            <label for='recipientName'>Add recipient name:
                                                 <div class="tooltip">?<span class="tooltiptext">Example of SEI examinee schema: [First Name] [Last Name]</span></div>
                                                 </label>
-                                            <input type="text"  v-model="config.name">
+                                            <input type="text" v-model="config.name">
                                         </div>
                                         <div>
-                                            <label for='recipientEmail'>Add recipient email field:
+                                            <label for='recipientEmail'>Add recipient email address:
                                                     <div class="tooltip">?<span class="tooltiptext">Example of SEI examinee schema: [Email]</span></div>
                                             </label>
                                             <input type="text" v-model="config.email">
@@ -309,7 +310,6 @@
     <script type="text/javascript" src="{{ url_for('static', filename='clipboard.min.js') }}"></script>
     <script>
         var GLOBALS = {
-            senders: {{ senders|tojson }},
             templates: {{ templates|tojson }},
             schema: {{ schema|tojson }},
             configs: {{ configs|tojson }}
@@ -326,7 +326,6 @@
             el: '#app',
             data: {
                 templates: GLOBALS.templates,
-                senders: GLOBALS.senders,
                 schema: GLOBALS.schema,
                 configs: GLOBALS.configs,
                 apiKeyLink: '/api_key' + window.location.search,
@@ -343,9 +342,6 @@
                         var config = this.configs[i];
                         var template = findById(config.template_id, this.templates);
                         config.template_name = template.name;
-                        var sender = findById(config.sender_id, this.senders);
-                        config.sender_name = sender.from.name;
-                        config.sender_email = sender.from.email;
                     }
                     var payload = {
                         configs: this.configs
