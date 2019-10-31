@@ -1,5 +1,6 @@
 import json
 import os
+from datetime import datetime
 
 import boto3
 import jwt
@@ -39,7 +40,11 @@ def handle_sei_event(event, context):
 
     # TODO: run these in parallel
     psi_response = send_to_psi(delivery_json)
-    saba_response = send_to_saba(delivery_json)
+
+    saba_response = None
+    if delivery_json['passed']:
+        saba_response = send_to_saba(delivery_json)
+
     ip_response = check_ip()
 
     send_to_slack(delivery_json, psi_response, saba_response, ip_response)
@@ -133,8 +138,145 @@ def send_to_psi(delivery_json):
     return {'Status Code': r.status_code}
 
 
+def get_saba_cert():
+    url = '{}/v1/login'.format(os.environ['SABA_URL_BASE'])
+    headers = {
+        'user': os.environ['SABA_USER'],
+        'password': os.environ['SABA_PASSWORD'],
+        'site': os.environ['SABA_SITE']
+    }
+    r = requests.get(url, headers=headers)
+    return r.json()['certificate']
+
+
+def get_saba_person_id(certificate, unique_id):
+    if not unique_id:
+        unique_id = '994633d0271065fd25248485dd83c363'
+    url = '{}/v1/people/username={}'.format(os.environ['SABA_URL_BASE'], unique_id)
+    headers = {
+        'SabaCertificate': certificate
+    }
+    r = requests.get(url, headers=headers)
+    return r.json().get('id')
+
+
+def get_saba_course_id(readable_course_id=None):
+    # TODO: get the readable_course_id from the exam title and make a request here:
+    # https://hpe-itg-api.sabacloud.com/v1/course/course_no=HPE1-H01
+    # then return the r.json()['id']
+    # hardcoded for now
+    return 'cours000000001189168'
+
+
 def send_to_saba(delivery_json):
-    return {'Status Code': None}
+    examinee_info = delivery_json['examinee']['info']
+    unique_id = examinee_info.get('uniqueID')
+    cert = get_saba_cert()
+    course_id = get_saba_course_id()
+    person_id = get_saba_person_id(cert, unique_id)
+
+    if person_id:
+        url = '{}/v1/transcript'.format(os.environ['SABA_URL_BASE'])
+        headers = {
+            'SabaCertificate': cert
+        }
+        payload = build_saba_payload(course_id, person_id, delivery_json['score'])
+
+        r = requests.post(url, headers=headers, json=payload)
+        status_code = r.status_code
+    else:
+        status_code = None
+
+    return {'Status Code': status_code}
+
+
+def build_saba_payload(course_id, person_id, score):
+    now = datetime.utcnow()
+
+    date = now.strftime('%Y-%m-%d')
+    time = now.strftime('%H:%M')
+    delivered_by = 'WS_CAVEON'
+    delivery_type = 'Exam/Test (On Demand)'
+    payload = {
+        '@type': 'com.saba.offering.adhoclearning.AdHocLearningTranscriptDetail',
+        'offeringStartDate': {
+            '@type': 'date',
+            'time': date
+        },
+        'startTime': time,
+        'deliveredBy': delivered_by, # can be added in a config file or hard coded, set to PEARSON today. Need to create one for Caveon. Value will change in PROD.
+        'deliveryType': delivery_type, # can be added in a config file or hard coded, mapped to Exam/Test (On Demand)
+        'courseId': course_id, # this is the ID from the course lookup call
+        'learners': [
+            'java.util.ArrayList',
+            [
+                {
+                    '@type': 'com.saba.offering.adhoclearning.LearnerInfo',
+                    'learnerId': person_id,  # this is the ID from the people lookup call
+                    'grade': 'Pass',
+                    'score': [
+                        'java.math.BigDecimal',
+                        score
+                    ],
+                    'completedOnDate': {
+                        '@type': 'date',
+                        'time': date
+                    }
+                }
+            ]
+        ],
+        'customValues': [
+            'list',
+            [
+                {
+                    '@type': 'CustomAttributeValueDetail',
+                    'name': 'custom2',
+                    'datatype': {
+                        '@type': 'CustomAttributeDatatype',
+                        'value': '18'
+                    },
+                    'value': None  # Test Location
+                },
+                {
+                    '@type': 'CustomAttributeValueDetail',
+                    'name': 'custom3',
+                    'datatype': {
+                        '@type': 'CustomAttributeDatatype',
+                        'value': '18'
+                    },
+                    'value': None  # Exam Result First Name
+                },
+                {
+                    '@type': 'CustomAttributeValueDetail',
+                    'name': 'custom4',
+                    'datatype': {
+                        '@type': 'CustomAttributeDatatype',
+                        'value': '18'
+                    },
+                    'value': None  # Exam Result Last Name
+                },
+                {
+                    '@type': 'CustomAttributeValueDetail',
+                    'name': 'custom5',
+                    'datatype': {
+                        '@type': 'CustomAttributeDatatype',
+                        'value': '18'
+                    },
+                    'value': None  # Exam Result Vendor Exam ID
+                },
+                {
+                    '@type': 'CustomAttributeValueDetail',
+                    'name': 'custom6',
+                    'datatype': {
+                        '@type': 'CustomAttributeDatatype',
+                        'value': '18'
+                    },
+                    'value': None  # Exam Result Test Location
+                }
+            ]
+        ]
+    }
+    return payload
 
 
 def check_ip():

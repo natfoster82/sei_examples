@@ -20,6 +20,10 @@ provider:
     PSI_PASSWORD: ${secrets:PSI_PASSWORD}
     PSI_CONSUMER_KEY: ${secrets:PSI_CONSUMER_KEY}
     PSI_CONSUMER_SECRET: ${secrets:PSI_CONSUMER_SECRET}
+    SABA_USER: ${secrets:SABA_USER}
+    SABA_PASSWORD: ${secrets:SABA_PASSWORD}
+    SABA_SITE: ${secrets:SABA_SITE}
+    SABA_URL_BASE: ${secrets:SABA_URL_BASE}
 
 functions:
   handle_sei_event:
