@@ -195,7 +195,7 @@ def build_saba_payload(course_id, person_id, score):
 
     date = now.strftime('%Y-%m-%d')
     time = now.strftime('%H:%M')
-    delivered_by = 'WS_CAVEON'
+    delivered_by = 'emplo000000005308513'
     delivery_type = 'Exam/Test (On Demand)'
     payload = {
         '@type': 'com.saba.offering.adhoclearning.AdHocLearningTranscriptDetail',
