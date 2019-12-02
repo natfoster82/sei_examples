@@ -25,7 +25,7 @@ pycparser==2.18           # via cffi
 pyjwt==1.6.4
 pyopenssl==18.0.0         # via requests
 redis==2.10.6
-requests[security]==2.19.1
+requests[security]==2.20.0
 six==1.11.0               # via cryptography, eventlet, pyopenssl
 urllib3==1.23             # via requests
 werkzeug==0.14.1          # via flask
