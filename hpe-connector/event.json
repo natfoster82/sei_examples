@@ -1,0 +1,104 @@
+{
+  "resource": "/connectors/hpe",
+  "path": "/connectors/hpe",
+  "httpMethod": "POST",
+  "headers": {
+    "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.xsicVwEXK__-G2LCuZqR5hIZYs-ko3fI7Eo71CgS-9E",
+    "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3",
+    "accept-encoding": "gzip, deflate, br",
+    "accept-language": "en-US,en;q=0.9",
+    "Host": "q3bojfs3dd.execute-api.us-east-1.amazonaws.com",
+    "sec-fetch-mode": "navigate",
+    "sec-fetch-site": "none",
+    "sec-fetch-user": "?1",
+    "upgrade-insecure-requests": "1",
+    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/76.0.3809.100 Chrome/76.0.3809.100 Safari/537.36",
+    "X-Amzn-Trace-Id": "Root=1-5d82af16-4c067984db8863e4c89ad77e",
+    "X-Forwarded-For": "64.72.215.214",
+    "X-Forwarded-Port": "443",
+    "X-Forwarded-Proto": "https"
+  },
+  "multiValueHeaders": {
+    "accept": [
+      "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3"
+    ],
+    "accept-encoding": [
+      "gzip, deflate, br"
+    ],
+    "accept-language": [
+      "en-US,en;q=0.9"
+    ],
+    "Host": [
+      "q3bojfs3dd.execute-api.us-east-1.amazonaws.com"
+    ],
+    "sec-fetch-mode": [
+      "navigate"
+    ],
+    "sec-fetch-site": [
+      "none"
+    ],
+    "sec-fetch-user": [
+      "?1"
+    ],
+    "upgrade-insecure-requests": [
+      "1"
+    ],
+    "User-Agent": [
+      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/76.0.3809.100 Chrome/76.0.3809.100 Safari/537.36"
+    ],
+    "X-Amzn-Trace-Id": [
+      "Root=1-5d82af16-4c067984db8863e4c89ad77e"
+    ],
+    "X-Forwarded-For": [
+      "64.72.215.214"
+    ],
+    "X-Forwarded-Port": [
+      "443"
+    ],
+    "X-Forwarded-Proto": [
+      "https"
+    ]
+  },
+  "queryStringParameters": {
+    "exam_id": "b3643010-ebaa-4f62-b968-345c58f43d2d",
+    "delivery_id": "35a2385e-eb54-4611-83b8-0a7258cb4d8e",
+    "jwt": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.xsicVwEXK__-G2LCuZqR5hIZYs-ko3fI7Eo71CgS-9E"
+  },
+  "multiValueQueryStringParameters": null,
+  "pathParameters": null,
+  "stageVariables": null,
+  "requestContext": {
+    "resourceId": "hnzczd",
+    "resourcePath": "/connectors/{connector}",
+    "httpMethod": "GET",
+    "extendedRequestId": "APBLgEsvoAMFqjQ=",
+    "requestTime": "18/Sep/2019:22:26:30 +0000",
+    "path": "/first/connectors/slack",
+    "accountId": "529501107645",
+    "protocol": "HTTP/1.1",
+    "stage": "first",
+    "domainPrefix": "q3bojfs3dd",
+    "requestTimeEpoch": 1568845590372,
+    "requestId": "9f5e9660-a45c-4696-a882-68402d7cfa36",
+    "identity": {
+      "cognitoIdentityPoolId": null,
+      "accountId": null,
+      "cognitoIdentityId": null,
+      "caller": null,
+      "sourceIp": "64.72.215.214",
+      "principalOrgId": null,
+      "accessKey": null,
+      "cognitoAuthenticationType": null,
+      "cognitoAuthenticationProvider": null,
+      "userArn": null,
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/76.0.3809.100 Chrome/76.0.3809.100 Safari/537.36",
+      "user": null
+    },
+    "domainName": "q3bojfs3dd.execute-api.us-east-1.amazonaws.com",
+    "apiId": "q3bojfs3dd"
+  },
+  "body": "{\"exam_id\": \"b3643010-ebaa-4f62-b968-345c58f43d2d\", \"delivery_id\": \"35a2385e-eb54-4611-83b8-0a7258cb4d8e\",\"event\": \"delivery_completed\"}",
+  "isBase64Encoded": false
+}
+
+

@@ -1,0 +1,47 @@
+service: hpe-connector
+# app and org for use with dashboard.serverless.com
+app: hpe-connector
+org: natfoster
+
+custom:
+  pythonRequirements:
+    dockerizePip: true
+
+provider:
+  name: aws
+  runtime: python3.7
+  stage: ${opt:stage,'dev'}
+  environment:
+    STAGE: ${opt:stage,'dev'}
+    SEI_URL_BASE: ${secrets:SEI_URL_BASE}
+    PSI_URL_BASE: ${secrets:PSI_URL_BASE}
+    SLACK_WEBHOOK_URL: ${secrets:SLACK_WEBHOOK_URL}
+    SLACK_CHANNEL: ${secrets:SLACK_CHANNEL}
+    PSI_PASSWORD: ${secrets:PSI_PASSWORD}
+    PSI_CONSUMER_KEY: ${secrets:PSI_CONSUMER_KEY}
+    PSI_CONSUMER_SECRET: ${secrets:PSI_CONSUMER_SECRET}
+    SABA_USER: ${secrets:SABA_USER}
+    SABA_PASSWORD: ${secrets:SABA_PASSWORD}
+    SABA_SITE: ${secrets:SABA_SITE}
+    SABA_URL_BASE: ${secrets:SABA_URL_BASE}
+
+functions:
+  handle_sei_event:
+    handler: handler.handle_sei_event
+    vpc:
+      securityGroupIds:
+        - ${secrets:SECURITY_GROUP_ID}
+      subnetIds:
+        - ${secrets:SUBNET_ID_1}
+        - ${secrets:SUBNET_ID_2}
+  handle_delivery_widget:
+    handler: handler.handle_delivery_widget
+    vpc:
+      securityGroupIds:
+        - ${secrets:SECURITY_GROUP_ID}
+      subnetIds:
+        - ${secrets:SUBNET_ID_1}
+        - ${secrets:SUBNET_ID_2}
+
+plugins:
+  - serverless-python-requirements

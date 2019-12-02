@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en"><head>
+    <meta charset="utf-8">
+    <title>Open a link in a new window</title>
+    <meta name="description" content="Open a link in a new tab">
+    <style>
+        html, body { margin:20px; padding: 0; font-family: Arial, Helvetica, sans-serif; text-align:center;}
+        .link { display:inline-block; padding: 8px 30px; color: #ffffff; border-radius: 3px; background-color: rgb(60, 102, 131); text-decoration: none; box-shadow: 0 3px 5px rgb(184, 184, 184); transition: all .15s ease-in-out; }
+        .link:hover { background-color: rgb(73, 127, 167); }
+    </style>
+  </head>
+  <body>
+  <a id="link" href="#" target="_blank" class="link" onclick="openInWindow()">Open in new window</a>
+  <script>
+    function getUrlParameter(name) {
+      name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+      var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+      var results = regex.exec(location.search);
+      return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+    }
+    function openInWindow() {
+      var url = getUrlParameter('url');
+      window.open(url, 'External Page','resizable,height=600,width=800');
+      return false;
+    }
+  </script>
+  </body>
+</html>
