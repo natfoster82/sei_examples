@@ -1,0 +1,15 @@
+version: '2'
+
+services:
+  redis:
+    image: 'redis:alpine'
+
+  web:
+    build: .
+    command: 'flask run --host=0.0.0.0 -p 5532'
+    env_file:
+      - '.env'
+    volumes:
+      - '.:/app'
+    ports:
+      - '5532:5532'

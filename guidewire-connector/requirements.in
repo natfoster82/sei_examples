@@ -1,0 +1,8 @@
+flask
+flask-wtf
+redis
+requests[security]
+pyjwt
+eventlet
+gunicorn
+paramiko
