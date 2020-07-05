@@ -13,7 +13,7 @@ if __name__ == '__main__':
         scheduler.cancel(job)
 
     scheduler.cron(
-        cron_string='0 16 * * *',
+        cron_string='0 0 * * *',
         func=upload_all,
         args=[],
         kwargs={},
