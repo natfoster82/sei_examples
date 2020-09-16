@@ -23,24 +23,12 @@ app.url_map.strict_slashes = False
 # some helpers
 redis_store = StrictRedis.from_url(app.config['REDIS_URL'], db=app.config['REDIS_DB'], decode_responses=True)
 pool = ThreadPool(4)
+basic_auth = HTTPBasicAuth(username=app.config['SEI_ID'], password=app.config['SEI_SECRET'])
 
 
 def make_request(request_dict):
     response = requests.get(request_dict['url'], headers=request_dict['headers'])
     return response.json()
-
-
-def get_integration_info(exam_id):
-    data = redis_store.get(exam_id)
-    if data:
-        return loads(data)
-    url = app.config['SEI_URL_BASE'] + '/api/integrations/' + exam_id + '/credentials'
-    resp = requests.get(url, auth=HTTPBasicAuth(username=app.config['SEI_ID'], password=app.config['SEI_SECRET']))
-    if resp.status_code != 200:
-        raise ValueError('No access to this exam_id')
-    data = resp.json()
-    redis_store.set(data['exam_id'], dumps(data))
-    return data
 
 
 def build_template_data(delivery, to_dict):
@@ -99,7 +87,7 @@ def sei_redirect():
     if not confirm_token:
         abort(400)
     url = app.config['SEI_URL_BASE'] + '/api/integrations/confirm/' + confirm_token
-    resp = requests.get(url, auth=HTTPBasicAuth(username=app.config['SEI_ID'], password=app.config['SEI_SECRET']))
+    resp = requests.get(url, auth=basic_auth)
     if resp.status_code != 200:
         abort(400)
     data = resp.json()
@@ -124,11 +112,10 @@ def events():
     # authorize the request
     body = request.get_json()
     exam_id = body['exam_id']
-    integration_info = get_integration_info(exam_id)
     auth_header = request.headers.get('Authorization')
     token = auth_header.split()[1]
     try:
-        decoded = jwt.decode(token, integration_info['secret'], algorithms=['HS256'])
+        decoded = jwt.decode(token, app.config['SEI_SECRET'], algorithms=['HS256'])
     except jwt.exceptions.InvalidTokenError:
         return jsonify(), 403
 
@@ -136,10 +123,10 @@ def events():
     # TODO: only do this for delivery type events
     delivery_id = body['delivery_id']
     delivery_url = '{0}/api/exams/{1}/deliveries/{2}?include=exam,breakdown_objects,score_token'.format(app.config['SEI_URL_BASE'], exam_id, delivery_id)
-    delivery_headers = {'Authorization': 'Bearer {0}'.format(integration_info['token'])}
-    delivery_response = requests.get(delivery_url, headers=delivery_headers)
+    delivery_response = requests.get(delivery_url, auth=basic_auth)
     delivery_json = delivery_response.json()
     examinee_info = delivery_json['examinee']['info']
+    integration_info = redis_store.get(exam_id)
     api_key = integration_info.get('api_key')
     if api_key:
         event = body['event']
@@ -167,9 +154,9 @@ def delivery_widget():
     exam_id = request.args.get('exam_id')
     delivery_id = request.args.get('delivery_id')
     token = request.args.get('jwt')
-    integration_info = get_integration_info(exam_id)
+    integration_info = redis_store.get(exam_id)
     try:
-        decoded = jwt.decode(token, integration_info['secret'], algorithms=['HS256'])
+        decoded = jwt.decode(token, app.config['SEI_SECRET'], algorithms=['HS256'])
     except jwt.exceptions.InvalidTokenError:
         abort(403)
     configs = integration_info.get('configs', [])
@@ -186,9 +173,9 @@ def delivery_widget():
 def switch():
     exam_id = request.args.get('exam_id')
     token = request.args.get('jwt')
-    integration_info = get_integration_info(exam_id)
+    integration_info = redis_store.get(exam_id)
     try:
-        decoded = jwt.decode(token, integration_info['secret'], algorithms=['HS256'])
+        decoded = jwt.decode(token, app.config['SEI_SECRET'], algorithms=['HS256'])
     except jwt.exceptions.InvalidTokenError:
         abort(403)
 
@@ -201,9 +188,9 @@ def switch():
 def api_key():
     exam_id = request.args.get('exam_id')
     token = request.args.get('jwt')
-    integration_info = get_integration_info(exam_id)
+    integration_info = redis_store.get(exam_id)
     try:
-        decoded = jwt.decode(token, integration_info['secret'], algorithms=['HS256'])
+        decoded = jwt.decode(token, app.config['SEI_SECRET'], algorithms=['HS256'])
     except jwt.exceptions.InvalidTokenError:
         abort(403)
     form = ApiKeyForm(api_key=integration_info.get('api_key'))
@@ -219,17 +206,16 @@ def api_key():
 def configure():
     exam_id = request.args.get('exam_id')
     token = request.args.get('jwt')
-    integration_info = get_integration_info(exam_id)
+    integration_info = redis_store.get(exam_id)
     try:
-        decoded = jwt.decode(token, integration_info['secret'], algorithms=['HS256'])
+        decoded = jwt.decode(token, app.config['SEI_SECRET'], algorithms=['HS256'])
     except jwt.exceptions.InvalidTokenError:
         abort(403)
 
     request_dicts = []
 
     url = '{0}/api/exams/{1}?only=examinee_schema'.format(app.config['SEI_URL_BASE'], exam_id)
-    headers = {'Authorization': 'Bearer {0}'.format(integration_info['token'])}
-    request_dicts.append({'url': url, 'headers': headers})
+    request_dicts.append({'url': url, 'auth': basic_auth})
 
     sg_base = 'https://api.sendgrid.com/v3'
     sg_headers = {'Authorization': 'Bearer {0}'.format(integration_info['api_key'])}
@@ -255,9 +241,9 @@ def post_configuration():
     data = request.get_json()
     exam_id = request.args.get('exam_id')
     token = request.args.get('jwt')
-    integration_info = get_integration_info(exam_id)
+    integration_info = redis_store.get(exam_id)
     try:
-        decoded = jwt.decode(token, integration_info['secret'], algorithms=['HS256'])
+        decoded = jwt.decode(token, app.config['SEI_SECRET'], algorithms=['HS256'])
     except jwt.exceptions.InvalidTokenError:
         return jsonify(), 403
     integration_info['configs'] = data['configs']
