@@ -6,7 +6,7 @@ def json_response_hook(resp, *args, **kwargs):
 
 def map(session_options, resources):
     with FuturesSession(max_workers=4) as session:
-        session.headers = session_options.get('headers')
+        session.auth = session_options.get('auth')
 
         futures = [session.get(resource, hooks={'response': json_response_hook})\
             for resource in resources]

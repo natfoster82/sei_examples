@@ -71,7 +71,7 @@ def export_widget():
     token = request.args.get('jwt')
     integration_info = get_integration_info(exam_id)
     try:
-        decoded = jwt.decode(token, integration_info['secret'], algorithms=['HS256'])
+        decoded = jwt.decode(token, app.config['SEI_SECRET'], algorithms=['HS256'])
     except jwt.exceptions.InvalidTokenError:
         abort(403)
     return render_template('export_widget.html', exam_id=exam_id, token=token)
@@ -83,7 +83,7 @@ def export():
     token = request.args.get('jwt')
     integration_info = get_integration_info(exam_id)
     try:
-        decoded = jwt.decode(token, integration_info['secret'], algorithms=['HS256'])
+        decoded = jwt.decode(token, app.config['SEI_SECRET'], algorithms=['HS256'])
     except jwt.exceptions.InvalidTokenError:
         abort(403)
 
@@ -110,7 +110,7 @@ def configure():
     token = request.args.get('jwt')
     integration_info = get_integration_info(exam_id)
     try:
-        decoded = jwt.decode(token, integration_info['secret'], algorithms=['HS256'])
+        decoded = jwt.decode(token, app.config['SEI_SECRET'], algorithms=['HS256'])
     except jwt.exceptions.InvalidTokenError:
         abort(403)
     form = ConfigureForm(**integration_info)

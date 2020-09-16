@@ -1,7 +1,7 @@
 import codecs
 import ftplib
 from datetime import datetime
-from json import loads, dumps
+from flask import current_app
 from urllib.parse import quote_plus
 import collections
 
@@ -24,17 +24,9 @@ SCORPION_SPLIT_CHAR = '|'
 def extract_section(content_area):
     return content_area.split(SCORPION_SPLIT_CHAR)[SCORPION_SECTION] or ''
 
+
 def get_integration_info(exam_id):
-    data = redis_store.get(exam_id)
-    if data:
-        return loads(data)
-    url = SEI_URL_BASE + '/api/integrations/' + exam_id + '/credentials'
-    resp = requests.get(url, auth=HTTPBasicAuth(username=SEI_ID, password=SEI_SECRET))
-    if resp.status_code != 200:
-        raise ValueError('No access to this exam_id')
-    data = resp.json()
-    redis_store.set(data['exam_id'], dumps(data))
-    return data
+    return redis_store.get(exam_id)
 
 
 class InvalidSecretError(Exception):
@@ -44,12 +36,14 @@ class InvalidSecretError(Exception):
 class InvalidDeliveryError(Exception):
     pass
 
+
 def get_item_type(item_version):
     settings = item_version['settings']
     if settings['type'] == 'multiple_choice':
         if settings['points'] > 1 and settings['scoring'] == 'partial':
             return 'm'
         return 's'
+
 
 def list_to_alpha(l, offset=65):
     alpha = []
@@ -61,6 +55,7 @@ def list_to_alpha(l, offset=65):
                 index -= 25
             alpha.append(''.join(letters))
     return ''.join(alpha)
+
 
 def item_response_to_alpha(item_response, item_version):
     final = item_response.get('final')
@@ -77,6 +72,7 @@ def item_response_to_alpha(item_response, item_version):
             response.append(0)
     return list_to_alpha(response)
 
+
 def get_item_status(item_response):
     score = item_response['score']
     if score is None or (score > 0 and score < 1):
@@ -87,6 +83,7 @@ def get_item_status(item_response):
 
     return 'i'
 
+
 def as_safe_string(value):
     if value is None:
         return ''
@@ -96,6 +93,7 @@ def as_safe_string(value):
         return '"{str_value}"'.format(str_value=str_value)
 
     return str_value
+
 
 class Exporter:
     all_columns = [
@@ -191,7 +189,7 @@ class Exporter:
 
         # set secret and headers from integration_info
         self.secret = integration_info.get('jwt_secret', 'invalid_secret')
-        self.headers = {'Authorization': 'Bearer {0}'.format(integration_info['token'])}
+        self.auth = HTTPBasicAuth(username=current_app.config['SEI_ID'], password=current_app.config['SEI_SECRET'])
 
         # set filename
         now = datetime.utcnow()
@@ -207,7 +205,7 @@ class Exporter:
 
         # fetch exam
         exam_url = '{0}/api/exams/{1}?only=name'.format(SEI_URL_BASE, self.exam_id)
-        exam_resp = requests.get(exam_url, headers=self.headers)
+        exam_resp = requests.get(exam_url, auth=self.auth)
 
         self.exam_title = exam_resp.json()['name']
         self.exam_title = self.exam_title.replace('"', '')
@@ -245,7 +243,7 @@ class Exporter:
 
     def item_columns(self):
         return self.item_columns_
-    
+
     def sect_columns(self):
         return self.sect_columns_
 
@@ -355,7 +353,7 @@ class Exporter:
         item_responses = delivery['item_responses']
         main_item_responses = [resp for resp in item_responses if resp['type'] == 'main']
         self.populate_item_version_cache(main_item_responses)
-        
+
         content_area_correct = collections.Counter()
         content_area_incorrect = collections.Counter()
         content_area_skipped = collections.Counter()
@@ -429,7 +427,7 @@ class Exporter:
             ready_requests.append(url)
 
         if len(ready_requests) > 0:
-            responses = async_request.map({ 'headers': self.headers }, ready_requests)
+            responses = async_request.map({ 'auth': self.auth }, ready_requests)
             responses_json = [item_version.json for item_version in responses]
             self.item_version_cache.update({ item_version['id']: item_version for item_version in responses_json })
 
@@ -453,11 +451,11 @@ class Exporter:
         if self.type == 'all' or self.type == 'cand':
             cand_buffer = get_buffer('cand')
             yield cand_buffer.write(self.make_row(self.cand_columns()))
-        
+
         if self.type == 'all' or self.type == 'exam':
             exam_buffer = get_buffer('exam')
             yield exam_buffer.write(self.make_row(self.exam_columns()))
-        
+
         if self.type == 'all' or self.type == 'item':
             item_buffer = get_buffer('item')
             yield item_buffer.write(self.make_row(self.item_columns()))
@@ -469,21 +467,21 @@ class Exporter:
         while has_next:
             page += 1
             url = base_url + '&page={0}'.format(str(page))
-            r = requests.get(url, headers=self.headers)
+            r = requests.get(url, auth=self.auth)
             data = r.json()
             has_next = data['has_next']
             for delivery in data['results']:
                 try:
                     if self.type == 'all' or self.type == 'cand':
                         yield cand_buffer.write(self.make_row(self.cand_values(delivery)))
-                    
+
                     if self.type == 'all' or self.type == 'exam':
                         yield exam_buffer.write(self.make_row(self.exam_values(delivery)))
-                    
+
                     if self.type == 'all' or self.type == 'item':
                         for response_row in self.item_values(delivery):
                             yield item_buffer.write(self.make_row(response_row))
-                    
+
                     if self.type == 'all' or self.type == 'sect':
                         for sect_row in self.sect_values(delivery):
                             yield sect_buffer.write(self.make_row(sect_row))
