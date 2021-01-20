@@ -214,7 +214,7 @@
                         SEI Data to SendGrid</h1>
                     <div class="row">
                         <div class="leftCol">
-                            <fieldset v-for="config in configs">
+                            <fieldset v-for="(config, index) in configs">
                                 <div>
                                     <label for='event'>Choose an event that triggers an email:</label>
                                     <select name="event" v-model="config.event">
@@ -266,7 +266,7 @@
                                         </ul>
                                     </div>
                                 </div>
-                                <button type="button" class="copy_btn floatRight" data-clipboard-text="[Name]">Delete this connector</button>
+                                <button type="button" class="copy_btn floatRight" v-on:click="deleteConnector(index)">Delete this connector</button>
                             </fieldset>                 
                             <div>
                                 <button class="button2" type="button" v-on:click="addConfig">Add an email connector</button>
@@ -351,6 +351,9 @@
                             this.saving = false;
                         }.bind(this), 1000);
                     }.bind(this));
+                },
+                deleteConnector: function(index) {
+                    this.configs.splice(index, 1);
                 }
             }
         })
